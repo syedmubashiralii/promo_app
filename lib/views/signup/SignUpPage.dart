@@ -22,8 +22,6 @@ class _SignUpPageState extends State<SignUpPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
-  String _affiliationStatus = 'Student';
-  final List<String> _affiliationOptions = ['Student', 'Teacher', 'Other'];
   List<String> selectedAffiliations = [];
   List<String> allAffiliations = [
     "Student",
@@ -60,13 +58,11 @@ class _SignUpPageState extends State<SignUpPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Center(
-                  child: Text(
-                    "Sign Up!",
-                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-                  ),
+                const Text(
+                  "Sign Up!",
+                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                 ),
-                const SizedBox(height: 25),
+                const SizedBox(height: 20),
                 CustomTextField(
                   labelText: "Full Name:",
                   hintText: "i.e., John Smith",
@@ -92,7 +88,7 @@ class _SignUpPageState extends State<SignUpPage> {
                     )),
                 const SizedBox(height: 5),
                 CustomTextField(
-                  labelText: "Password",
+                  labelText: "Password:",
                   hintText: "i.e., ************",
                   controller: _passwordController,
                   obscureText: _obscureText,
@@ -121,40 +117,44 @@ class _SignUpPageState extends State<SignUpPage> {
                 _isLoading
                     ? const Center(child: CircularProgressIndicator())
                     : ElevatedButton(
-                  onPressed: () {
-                    // Signup logic
-                    Get.offAllNamed(Routes.LOGIN);
-                    Get.snackbar("Success", "SignUp successful",
-                        backgroundColor: Colors.green,
-                        colorText: Colors.white);
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: ColorHelper.blue,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    minimumSize: const Size.fromHeight(45),
-                  ),
-                  child: const Text("Sign Up",
-                      style: TextStyle(
-                          fontSize: 16,
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold)),
-                ),
+                        onPressed: () {
+                          // Signup logic
+                          Get.offAllNamed(Routes.LOGIN);
+                          Get.snackbar("Success", "SignUp successful",
+                              backgroundColor: Colors.green,
+                              colorText: Colors.white);
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: ColorHelper.blue,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          minimumSize: const Size.fromHeight(45),
+                        ),
+                        child: const Text("Sign Up",
+                            style: TextStyle(
+                                fontSize: 16,
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold)),
+                      ),
                 const SizedBox(height: 15),
                 Center(
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       const Text("Already have an account?"),
-                      TextButton(
-                        onPressed: () {
+                      GestureDetector(
+                        onTap: () {
                           Get.toNamed(Routes.LOGIN);
+
                         },
-                        child: const Text("Login",
-                            style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black)),
+                        child: const Text(
+                          "Login",
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black,
+                          ),
+                        ),
                       ),
                     ],
                   ),
@@ -167,10 +167,10 @@ class _SignUpPageState extends State<SignUpPage> {
     );
   }
 
-  Widget _buildTextField(String label, String hint,
-      TextEditingController controller,
+  Widget _buildTextField(
+      String label, String hint, TextEditingController controller,
       {bool isPassword = false,
-        TextInputType keyboardType = TextInputType.text}) {
+      TextInputType keyboardType = TextInputType.text}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -182,14 +182,14 @@ class _SignUpPageState extends State<SignUpPage> {
           obscureText: isPassword ? _obscureText : false,
           suffixIcon: isPassword
               ? IconButton(
-            icon: Icon(
-                _obscureText ? Icons.visibility : Icons.visibility_off),
-            onPressed: () {
-              setState(() {
-                _obscureText = !_obscureText;
-              });
-            },
-          )
+                  icon: Icon(
+                      _obscureText ? Icons.visibility : Icons.visibility_off),
+                  onPressed: () {
+                    setState(() {
+                      _obscureText = !_obscureText;
+                    });
+                  },
+                )
               : null,
         ),
         const SizedBox(height: 15),
@@ -273,7 +273,8 @@ class _SignUpPageState extends State<SignUpPage> {
       context: context,
       builder: (_) {
         return Dialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
           backgroundColor: Colors.white,
           child: Container(
             width: double.infinity,
@@ -283,7 +284,8 @@ class _SignUpPageState extends State<SignUpPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Padding(
-                  padding: EdgeInsets.only(left: 10, top: 10), // ⬅ Only left padding
+                  padding: EdgeInsets.only(left: 10, top: 10),
+                  // ⬅ Only left padding
                   child: Text(
                     "Select",
                     style: TextStyle(
@@ -295,7 +297,8 @@ class _SignUpPageState extends State<SignUpPage> {
                 ...allAffiliations.map((item) {
                   bool isSelected = selectedAffiliations.contains(item);
                   return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 0), // ⬅ Less vertical spacing
+                    padding: const EdgeInsets.symmetric(vertical: 0),
+                    // ⬅ Less vertical spacing
                     child: Theme(
                       data: Theme.of(context).copyWith(
                         unselectedWidgetColor: const Color(0xFF355F9B),

@@ -7,7 +7,7 @@ import 'package:get/get.dart';
 import '../../controllers/home_controller.dart';
 import '../../utils/color_helper.dart';
 import 'ReedMeView.dart';
-import 'home_view.dart';
+import 'main_view/home_view.dart';
 
 class BottomNavView extends StatelessWidget {
   HomeController controller = Get.put(HomeController());
@@ -22,7 +22,7 @@ class BottomNavView extends StatelessWidget {
         child: Scaffold(
           body: Obx(() => IndexedStack(
                 index: controller.selectedIndex.value,
-                children: [
+                children: const [
                   HomeView(),
                   ReedMeView(),
                   FavouriteView(),
@@ -32,7 +32,7 @@ class BottomNavView extends StatelessWidget {
           bottomNavigationBar: Obx(() {
             return Container(
               padding: const EdgeInsets.symmetric(horizontal: 16),
-              height: 64,
+              height: 50,
               decoration: const BoxDecoration(
                 borderRadius: BorderRadius.only(
                     topLeft: Radius.circular(20),
@@ -47,6 +47,8 @@ class BottomNavView extends StatelessWidget {
                     onTap: () => controller.changeTab(0),
                     child: SvgPicture.asset(
                       'assets/images/home.svg',
+                      height: 24,
+                      width: 24,
                       color: controller.selectedIndex.value == 0
                           ? const Color(0xFF007AFF)
                           : ColorHelper.textGrey1,
@@ -67,6 +69,8 @@ class BottomNavView extends StatelessWidget {
                       onTap: () => controller.changeTab(2),
                       child: SvgPicture.asset(
                         'assets/images/fav.svg',
+                        height: 24,
+                        width: 24,
                         color: controller.selectedIndex.value == 2
                             ? const Color(0xFF007AFF)
                             : ColorHelper.textGrey1,

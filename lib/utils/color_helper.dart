@@ -13,5 +13,6 @@ class ColorHelper {
   static const Color textFieldFillColor= Color(0xffF7F7F7);
   static const Color textFieldBorderColor= Color(0xffE1E1E1);
   static const Color textFieldLabelColor= Color(0xff4B4B4B);
+  static const Color red= Color(0xffFF3B30);
   static const Color white =Colors.white;
 }

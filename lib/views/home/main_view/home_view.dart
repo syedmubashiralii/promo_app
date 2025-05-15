@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../../controllers/home_controller.dart';
-import '../../utils/color_helper.dart';
+import '../../../controllers/home_controller.dart';
+import '../../../routes/app_pages.dart';
+import '../../../utils/color_helper.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({super.key});
@@ -97,7 +98,9 @@ class _HomeViewState extends State<HomeView> {
                       width: 20,
                       height: 20,
                     ),
-                    onPressed: () {},
+                    onPressed: () {
+                      Get.toNamed(Routes.SORTVIEW);
+                    },
                   ),
                 ),
 
@@ -119,7 +122,9 @@ class _HomeViewState extends State<HomeView> {
                       width: 20,
                       height: 20,
                     ),
-                    onPressed: () {},
+                    onPressed: () {
+                      Get.toNamed(Routes.FILTERVIEW);
+                    },
                   ),
                 ),
               ],

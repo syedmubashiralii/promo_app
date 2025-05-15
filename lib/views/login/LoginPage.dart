@@ -67,7 +67,7 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                       const SizedBox(height: 5),
                       CustomTextField(
-                        labelText: "Password",
+                        labelText: "Password:",
                         hintText: "i.e., ************",
                         controller: _passwordController,
                         obscureText: _obscureText,
@@ -97,7 +97,7 @@ class _LoginPageState extends State<LoginPage> {
                         alignment: Alignment.centerRight,
                         child: TextButton(
                           onPressed: () {
-                            // Forgot Password logic
+                            Get.toNamed(Routes.FORGOT);
                           },
                           child: const Text(
                             "Forgot Password",

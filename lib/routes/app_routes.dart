@@ -7,6 +7,11 @@ abstract class Routes {
   static const LOGIN = _Paths.LOGIN;
   static const SIGNUP = _Paths.SIGNUP;
   static const BOTTOM_NAV = _Paths.BOTTOM_NAV;
+
+  static const FORGOT = _Paths.FORGOT;
+  static const SORTVIEW = _Paths.SORTVIEW;
+  static const FILTERVIEW = _Paths.FILTERVIEW;
+
 }
 
 // Define route paths
@@ -16,4 +21,9 @@ abstract class _Paths {
   static const LOGIN = '/login';
   static const SIGNUP = '/signup';
   static const BOTTOM_NAV = '/bottom_nav';
+
+  static const FORGOT = '/forgot';
+  static const SORTVIEW = '/sort';
+  static const FILTERVIEW = '/filter';
+
 }
