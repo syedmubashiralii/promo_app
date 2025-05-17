@@ -1,5 +1,6 @@
 import 'package:flutter_ui/views/forgot_pass/forgot_password.dart';
 import 'package:flutter_ui/views/home/main_view/filter_view.dart';
+import 'package:flutter_ui/views/home/main_view/item_details_view.dart';
 import 'package:flutter_ui/views/home/main_view/sort_view.dart';
 import 'package:flutter_ui/views/splash/SplashScreen.dart';
 import 'package:get/get_navigation/src/routes/get_route.dart';
@@ -43,6 +44,10 @@ class AppPages {
     GetPage(
       name: _Paths.FILTERVIEW,
       page: () => const FilterView(),
+    ),
+    GetPage(
+      name: _Paths.VIEWDETAIL,
+      page: () => const ItemDetailView(),
     ),
   ];
 }

@@ -11,6 +11,7 @@ abstract class Routes {
   static const FORGOT = _Paths.FORGOT;
   static const SORTVIEW = _Paths.SORTVIEW;
   static const FILTERVIEW = _Paths.FILTERVIEW;
+  static const VIEWDETAIL = _Paths.VIEWDETAIL;
 
 }
 
@@ -25,5 +26,6 @@ abstract class _Paths {
   static const FORGOT = '/forgot';
   static const SORTVIEW = '/sort';
   static const FILTERVIEW = '/filter';
+  static const VIEWDETAIL = '/detail';
 
 }

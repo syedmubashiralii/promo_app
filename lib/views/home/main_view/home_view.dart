@@ -23,9 +23,9 @@ class _HomeViewState extends State<HomeView> {
     'Home'
   ];
   String selectedCategory = 'All';
+
 //comment edit
   List<bool> favoriteStatus = List.filled(6, false);
-
 
   @override
   Widget build(BuildContext context) {
@@ -35,7 +35,8 @@ class _HomeViewState extends State<HomeView> {
         backgroundColor: ColorHelper.white,
         elevation: 0,
         centerTitle: true,
-        title: const Text("Home", style: TextStyle(color: Colors.black,fontWeight: FontWeight.w500)),
+        title: const Text("Home",
+            style: TextStyle(color: Colors.black, fontWeight: FontWeight.w500)),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -151,14 +152,18 @@ class _HomeViewState extends State<HomeView> {
                       label: Text(
                         category,
                         style: TextStyle(
-                          color: isSelected ? Colors.white : const Color(0xFFB3B3B3),
+                          color: isSelected
+                              ? Colors.white
+                              : const Color(0xFFB3B3B3),
                         ),
                       ),
                       selected: isSelected,
                       selectedColor: ColorHelper.blue,
                       backgroundColor: Colors.white,
                       side: BorderSide(
-                          color: isSelected ? ColorHelper.blue : const Color(0xFFB3B3B3),
+                        color: isSelected
+                            ? ColorHelper.blue
+                            : const Color(0xFFB3B3B3),
                       ),
                       onSelected: (_) {
                         setState(() {
@@ -229,7 +234,8 @@ class _HomeViewState extends State<HomeView> {
                               child: GestureDetector(
                                 onTap: () {
                                   setState(() {
-                                    favoriteStatus[index] = !favoriteStatus[index];
+                                    favoriteStatus[index] =
+                                        !favoriteStatus[index];
                                   });
                                 },
                                 child: Icon(
@@ -298,7 +304,9 @@ class _HomeViewState extends State<HomeView> {
                                   borderRadius: BorderRadius.circular(6),
                                 ),
                               ),
-                              onPressed: () {},
+                              onPressed: () {
+                                Get.toNamed(Routes.VIEWDETAIL);
+                              },
                               child: const Text(
                                 "View Details",
                                 style: TextStyle(

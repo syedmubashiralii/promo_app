@@ -4,6 +4,7 @@ class ColorHelper {
   static const Color primaryColor= Color(0xff004F9B);
   static const Color primaryRed = Color(0xFFFD1D1D);
   static const Color blue= Color(0xFF007AFF);
+  static const Color lightBlue= Color(0xFFCCE4FF);
   static const Color dullBlack= Color(0xFF4B4B4B);
   static const Color textGrey= Color(0xff868686);
   static const Color bgGrey= Color(0xFFF5F5F5);
