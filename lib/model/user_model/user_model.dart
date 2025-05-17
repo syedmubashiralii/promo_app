@@ -42,16 +42,16 @@ class UserModel {
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
-      name: $cast(json['name'] as String),
-      email: $cast(json['email'] as String),
-      location: $cast(json['location'] as String),
-      dob: $cast(json['dob'] as String),
-      affiliationId: $cast(json['affiliation_id'] as int),
-      updatedAt: $cast(json['updatedAt'] as String),
-      createdAt: $cast(json['createdAt'] as String),
-      id: $cast(json['id'] as int),
-      token: $cast(json['token'] as String),
-      phoneNumber: $cast(json['phone_number'] as String),
+      name: $cast(json['name']),
+      email: $cast(json['email']),
+      location: $cast(json['location']),
+      dob: $cast(json['dob']),
+      affiliationId: $cast(json['affiliation_id']),
+      updatedAt: $cast(json['updatedAt']),
+      createdAt: $cast(json['createdAt']),
+      id: $cast(json['id']),
+      token: $cast(json['token']),
+      phoneNumber: $cast(json['phone_number']),
     );
   }
 }

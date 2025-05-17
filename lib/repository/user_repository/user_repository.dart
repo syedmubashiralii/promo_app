@@ -12,11 +12,3 @@ abstract class UserRepository {
     required String dob,
   });
 }
-
-// "name" : "dsada",
-// "email" : "asa@gmail.com",
-// "location" : "sadasd",
-// "dob" : "2024-12-12",
-// "password": "12345678",
-// "affiliation_id" : 1,
-// "phone_number" : "2123132"

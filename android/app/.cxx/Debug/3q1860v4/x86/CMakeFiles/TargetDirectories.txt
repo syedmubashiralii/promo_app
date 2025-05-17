@@ -1,0 +1,2 @@
+/Users/apple/development/github projects/promo_app/android/app/.cxx/Debug/3q1860v4/x86/CMakeFiles/edit_cache.dir
+/Users/apple/development/github projects/promo_app/android/app/.cxx/Debug/3q1860v4/x86/CMakeFiles/rebuild_cache.dir
