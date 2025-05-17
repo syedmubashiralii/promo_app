@@ -9,10 +9,10 @@ class HomeView extends StatefulWidget {
   const HomeView({super.key});
 
   @override
-  _HomeViewState createState() => _HomeViewState();
+  HomeViewState createState() => HomeViewState();
 }
 
-class _HomeViewState extends State<HomeView> {
+class HomeViewState extends State<HomeView> {
   final controller = Get.put(HomeController());
 
   final List<String> categories = [
@@ -26,7 +26,6 @@ class _HomeViewState extends State<HomeView> {
 //comment edit
   List<bool> favoriteStatus = List.filled(6, false);
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -35,7 +34,8 @@ class _HomeViewState extends State<HomeView> {
         backgroundColor: ColorHelper.white,
         elevation: 0,
         centerTitle: true,
-        title: const Text("Home", style: TextStyle(color: Colors.black,fontWeight: FontWeight.w500)),
+        title: const Text("Home",
+            style: TextStyle(color: Colors.black, fontWeight: FontWeight.w500)),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -151,14 +151,18 @@ class _HomeViewState extends State<HomeView> {
                       label: Text(
                         category,
                         style: TextStyle(
-                          color: isSelected ? Colors.white : const Color(0xFFB3B3B3),
+                          color: isSelected
+                              ? Colors.white
+                              : const Color(0xFFB3B3B3),
                         ),
                       ),
                       selected: isSelected,
                       selectedColor: ColorHelper.blue,
                       backgroundColor: Colors.white,
                       side: BorderSide(
-                          color: isSelected ? ColorHelper.blue : const Color(0xFFB3B3B3),
+                        color: isSelected
+                            ? ColorHelper.blue
+                            : const Color(0xFFB3B3B3),
                       ),
                       onSelected: (_) {
                         setState(() {
@@ -229,7 +233,8 @@ class _HomeViewState extends State<HomeView> {
                               child: GestureDetector(
                                 onTap: () {
                                   setState(() {
-                                    favoriteStatus[index] = !favoriteStatus[index];
+                                    favoriteStatus[index] =
+                                        !favoriteStatus[index];
                                   });
                                 },
                                 child: Icon(

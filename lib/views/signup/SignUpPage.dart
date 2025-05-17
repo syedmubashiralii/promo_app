@@ -21,6 +21,7 @@ class _SignUpPageState extends State<SignUpPage> {
   final TextEditingController _zipController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
 
   List<String> selectedAffiliations = [];
   List<String> allAffiliations = [
@@ -50,116 +51,150 @@ class _SignUpPageState extends State<SignUpPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: ColorHelper.white,
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.only(top: 70),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 15),
-          child: Center(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  "Sign Up!",
-                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 20),
-                CustomTextField(
-                  labelText: "Full Name:",
-                  hintText: "i.e., John Smith",
-                  controller: _fullNameController,
-                ),
-                _buildDateField(),
-                CustomTextField(
-                  labelText: "Location (Zip Code):",
-                  hintText: "i.e., 456678",
-                  controller: _zipController,
-                ),
-                _buildDropdown(),
-                const SizedBox(height: 6),
-                CustomTextField(
-                    labelText: "Email:",
-                    hintText: "i.e., JohnSmith123@gmail.com",
-                    controller: _emailController,
-                    keyboardType: TextInputType.emailAddress,
+      body: Form(
+        key: _formKey,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.only(top: 70),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 15),
+            child: Center(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    "Sign Up!",
+                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 20),
+                  CustomTextField(
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter your full name';
+                      }
+                      return null;
+                    },
+                    labelText: "Full Name:",
+                    hintText: "i.e., John Smith",
+                    controller: _fullNameController,
+                  ),
+                  _buildDateField(),
+                  CustomTextField(
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter your zip code';
+                      }
+                      return null;
+                    },
+                    labelText: "Location (Zip Code):",
+                    hintText: "i.e., 456678",
+                    controller: _zipController,
+                  ),
+                  _buildDropdown(),
+                  const SizedBox(height: 6),
+                  CustomTextField(
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter your email';
+                        } else if (_emailController.text.contains('@') ==
+                            false) {
+                          return 'Please enter valid email';
+                        }
+                        return null;
+                      },
+                      labelText: "Email:",
+                      hintText: "i.e., JohnSmith123@gmail.com",
+                      controller: _emailController,
+                      keyboardType: TextInputType.emailAddress,
+                      prefixIcon: Image.asset(
+                        'assets/images/mail.png',
+                        width: 14,
+                        height: 14,
+                      )),
+                  const SizedBox(height: 5),
+                  CustomTextField(
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter Password';
+                      }
+                      if (value.length >= 8) {
+                        return 'Password must have at least 8 characters';
+                      }
+                      return null;
+                    },
+                    labelText: "Password:",
+                    hintText: "i.e., ************",
+                    controller: _passwordController,
+                    obscureText: _obscureText,
+                    keyboardType: TextInputType.text,
                     prefixIcon: Image.asset(
-                      'assets/images/mail.png',
+                      'assets/images/lock.png',
                       width: 14,
                       height: 14,
-                    )),
-                const SizedBox(height: 5),
-                CustomTextField(
-                  labelText: "Password:",
-                  hintText: "i.e., ************",
-                  controller: _passwordController,
-                  obscureText: _obscureText,
-                  keyboardType: TextInputType.text,
-                  prefixIcon: Image.asset(
-                    'assets/images/lock.png',
-                    width: 14,
-                    height: 14,
-                  ),
-                  suffixIcon: IconButton(
-                    icon: Image.asset(
-                      _obscureText
-                          ? 'assets/images/eye.png' // Your closed eye icon
-                          : 'assets/images/eye.png', // Your open eye icon
-                      width: 24, // Customize size if needed
-                      height: 24, // Customize size if needed
                     ),
-                    onPressed: () {
-                      setState(() {
-                        _obscureText = !_obscureText;
-                      });
-                    },
-                  ),
-                ),
-                const SizedBox(height: 15),
-                _isLoading
-                    ? const Center(child: CircularProgressIndicator())
-                    : ElevatedButton(
-                        onPressed: () {
-                          // Signup logic
-                          Get.offAllNamed(Routes.LOGIN);
-                          Get.snackbar("Success", "SignUp successful",
-                              backgroundColor: Colors.green,
-                              colorText: Colors.white);
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: ColorHelper.blue,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          minimumSize: const Size.fromHeight(45),
-                        ),
-                        child: const Text("Sign Up",
-                            style: TextStyle(
-                                fontSize: 16,
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold)),
+                    suffixIcon: IconButton(
+                      icon: Image.asset(
+                        _obscureText
+                            ? 'assets/images/eye.png' // Your closed eye icon
+                            : 'assets/images/eye.png', // Your open eye icon
+                        width: 24, // Customize size if needed
+                        height: 24, // Customize size if needed
                       ),
-                const SizedBox(height: 15),
-                Center(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Text("Already have an account?"),
-                      GestureDetector(
-                        onTap: () {
-                          Get.toNamed(Routes.LOGIN);
+                      onPressed: () {
+                        setState(() {
+                          _obscureText = !_obscureText;
+                        });
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 15),
+                  _isLoading
+                      ? const Center(child: CircularProgressIndicator())
+                      : ElevatedButton(
+                          onPressed: () async {
+                            if (!_formKey.currentState!.validate()) return;
 
-                        },
-                        child: const Text(
-                          "Login",
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black,
+                            // Signup logic
+                            Get.offAllNamed(Routes.LOGIN);
+                            Get.snackbar("Success", "SignUp successful",
+                                backgroundColor: Colors.green,
+                                colorText: Colors.white);
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: ColorHelper.blue,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            minimumSize: const Size.fromHeight(45),
+                          ),
+                          child: const Text("Sign Up",
+                              style: TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold)),
+                        ),
+                  const SizedBox(height: 15),
+                  Center(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text("Already have an account?"),
+                        GestureDetector(
+                          onTap: () {
+                            Get.toNamed(Routes.LOGIN);
+                          },
+                          child: const Text(
+                            "Login",
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                            ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
@@ -203,6 +238,12 @@ class _SignUpPageState extends State<SignUpPage> {
       children: [
         const SizedBox(height: 5),
         CustomTextField(
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Please enter your date of birth';
+            }
+            return null;
+          },
           labelText: "Date of Birth:",
           hintText: "i.e., 12/12/2002",
           controller: _dobController,

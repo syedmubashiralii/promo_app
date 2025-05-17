@@ -6,10 +6,10 @@ class FavouriteView extends StatefulWidget {
   const FavouriteView({super.key});
 
   @override
-  _FavouriteViewState createState() => _FavouriteViewState();
+  FavouriteViewState createState() => FavouriteViewState();
 }
 
-class _FavouriteViewState extends State<FavouriteView> {
+class FavouriteViewState extends State<FavouriteView> {
   // Dummy favorite list
   final List<Map<String, String>> favoriteItems = [
     {

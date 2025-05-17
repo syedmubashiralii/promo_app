@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
+
 import '../../utils/color_helper.dart';
 
 class ReedMeView extends StatefulWidget {
   const ReedMeView({super.key});
 
   @override
-  _ReedMeViewState createState() => _ReedMeViewState();
+  ReedMeViewState createState() => ReedMeViewState();
 }
 
-class _ReedMeViewState extends State<ReedMeView> {
+class ReedMeViewState extends State<ReedMeView> {
   // Dummy favorite list
   final List<Map<String, String>> favoriteItems = [
     {
@@ -51,7 +52,8 @@ class _ReedMeViewState extends State<ReedMeView> {
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -59,7 +61,8 @@ class _ReedMeViewState extends State<ReedMeView> {
                     Container(
                       padding: const EdgeInsets.all(2),
                       decoration: BoxDecoration(
-                        border: Border.all(color: ColorHelper.textFieldBorderColor),
+                        border:
+                            Border.all(color: ColorHelper.textFieldBorderColor),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: ClipRRect(
@@ -93,7 +96,8 @@ class _ReedMeViewState extends State<ReedMeView> {
                               const SizedBox(height: 4),
                               Text(
                                 item['subtitle']!,
-                                style: const TextStyle(fontSize: 12, color: Colors.grey),
+                                style: const TextStyle(
+                                    fontSize: 12, color: Colors.grey),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               ),
@@ -147,7 +151,8 @@ class _ReedMeViewState extends State<ReedMeView> {
                         padding: const EdgeInsets.all(6),
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(6),
-                          border: Border.all(color: ColorHelper.textFieldBorderColor),
+                          border: Border.all(
+                              color: ColorHelper.textFieldBorderColor),
                         ),
                         child: Image.asset(
                           "assets/images/ic_delete.png",

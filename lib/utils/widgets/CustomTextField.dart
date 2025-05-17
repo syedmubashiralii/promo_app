@@ -10,9 +10,10 @@ class CustomTextField extends StatelessWidget {
   final Widget? prefixIcon;
   final void Function(String)? onChanged;
   final double bottomSpacing;
+  final String? Function(String?)? validator;
 
   const CustomTextField({
-    Key? key,
+    super.key,
     required this.labelText,
     required this.hintText,
     required this.controller,
@@ -22,7 +23,8 @@ class CustomTextField extends StatelessWidget {
     this.suffixIcon,
     this.prefixIcon,
     this.bottomSpacing = 8,
-  }) : super(key: key);
+    this.validator,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -43,7 +45,8 @@ class CustomTextField extends StatelessWidget {
           ),
           const SizedBox(height: 5),
         ],
-        TextField(
+        TextFormField(
+          validator: validator,
           controller: controller,
           onChanged: onChanged,
           obscureText: obscureText,
@@ -70,9 +73,9 @@ class CustomTextField extends StatelessWidget {
             suffixIcon: suffixIcon,
             prefixIcon: prefixIcon != null
                 ? Padding(
-              padding: const EdgeInsets.all(12.0),
-              child: prefixIcon,
-            )
+                    padding: const EdgeInsets.all(12.0),
+                    child: prefixIcon,
+                  )
                 : null,
           ),
         ),
@@ -81,4 +84,3 @@ class CustomTextField extends StatelessWidget {
     );
   }
 }
-

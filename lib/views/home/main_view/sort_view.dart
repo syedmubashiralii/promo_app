@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_ui/utils/color_helper.dart';
-import 'package:intl/intl.dart';
 
 import '../../../utils/widgets/CustomTextField.dart';
 
@@ -8,12 +7,12 @@ class SortView extends StatefulWidget {
   const SortView({super.key});
 
   @override
-  _SortViewState createState() => _SortViewState();
+  SortViewState createState() => SortViewState();
 }
 
-class _SortViewState extends State<SortView> {
+class SortViewState extends State<SortView> {
   String? _selectedProximity;
-  TextEditingController _selectedDateCon = TextEditingController();
+  final TextEditingController _selectedDateCon = TextEditingController();
 
   List<String> selectedAffiliations = [];
   List<String> allAffiliations = [
@@ -25,7 +24,7 @@ class _SortViewState extends State<SortView> {
     "Government Employee"
   ];
 
-   List<String> proximityOptions = [
+  List<String> proximityOptions = [
     'Within 1 mile',
     'Within 15 miles',
     'Within 25 miles',
@@ -38,7 +37,7 @@ class _SortViewState extends State<SortView> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        leading: BackButton(color: Colors.black),
+        leading: const BackButton(color: Colors.black),
         title: const Text("Sort", style: TextStyle(color: Colors.black)),
         backgroundColor: Colors.white,
         elevation: 0,
@@ -110,13 +109,11 @@ class _SortViewState extends State<SortView> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Expanded(
-                    child: Text(
-                      _selectedProximity ?? "Select proximity",
-                      style: const TextStyle(fontSize: 14),
-                      overflow: TextOverflow.ellipsis,
-                    )
-
-                  ),
+                      child: Text(
+                    _selectedProximity ?? "Select proximity",
+                    style: const TextStyle(fontSize: 14),
+                    overflow: TextOverflow.ellipsis,
+                  )),
                   GestureDetector(
                     onTap: () => _showSingleSelectDialog(context),
                     child: Image.asset(
@@ -209,13 +206,14 @@ class _SortViewState extends State<SortView> {
       });
     }
   }
+
   void _showMultiSelectDialog(BuildContext context) {
     showDialog(
       context: context,
       builder: (_) {
         return Dialog(
           shape:
-          RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
           backgroundColor: Colors.white,
           child: Container(
             width: double.infinity,
@@ -280,12 +278,14 @@ class _SortViewState extends State<SortView> {
       },
     );
   }
+
   void _showSingleSelectDialog(BuildContext context) {
     showDialog(
       context: context,
       builder: (context) {
         return Dialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           child: ConstrainedBox(
             constraints: BoxConstraints(
               maxHeight: MediaQuery.of(context).size.height * 0.6,
@@ -320,7 +320,9 @@ class _SortViewState extends State<SortView> {
                               option,
                               style: TextStyle(
                                 fontSize: 16,
-                                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                fontWeight: isSelected
+                                    ? FontWeight.bold
+                                    : FontWeight.normal,
                                 color: Colors.black,
                               ),
                             ),
@@ -337,5 +339,4 @@ class _SortViewState extends State<SortView> {
       },
     );
   }
-
 }

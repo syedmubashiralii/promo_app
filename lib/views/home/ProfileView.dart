@@ -4,7 +4,7 @@ import '../../utils/color_helper.dart';
 import '../../utils/widgets/CustomTextField.dart';
 
 class ProfileView extends StatefulWidget {
-  const ProfileView({Key? key}) : super(key: key);
+  const ProfileView({super.key});
 
   @override
   State<ProfileView> createState() => _ProfileViewState();
@@ -54,19 +54,19 @@ class _ProfileViewState extends State<ProfileView> {
         child: Column(
           children: [
             // Avatar and Name
-            Column(
+            const Column(
               children: [
-                const CircleAvatar(
+                CircleAvatar(
                   radius: 40,
                   backgroundImage: AssetImage(
                       "assets/images/user.png"), // Replace with your own asset
                 ),
-                const SizedBox(height: 10),
-                const Text("John Smith",
+                SizedBox(height: 10),
+                Text("John Smith",
                     style:
                         TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                const SizedBox(height: 1),
-                const Text("Johnsmith12@gmail.com",
+                SizedBox(height: 1),
+                Text("Johnsmith12@gmail.com",
                     style: TextStyle(color: Colors.grey)),
               ],
             ),
@@ -92,7 +92,7 @@ class _ProfileViewState extends State<ProfileView> {
               labelText: '',
               hintText: '12/12/2002',
               controller: dobController,
-                bottomSpacing: 11,
+              bottomSpacing: 11,
               suffixIcon: IconButton(
                 icon: const Icon(Icons.calendar_today),
                 onPressed: () => _selectDate(context),
@@ -103,25 +103,24 @@ class _ProfileViewState extends State<ProfileView> {
             CustomTextField(
               labelText: '',
               hintText: selectedAffiliations,
-                bottomSpacing: 11,
+              bottomSpacing: 11,
               controller: TextEditingController(text: selectedAffiliations),
               suffixIcon: const Icon(Icons.arrow_drop_down),
             ),
 
             // ID
             CustomTextField(
-              labelText: '',
-              hintText: '456678',
-              controller: idController,
-                bottomSpacing: 11
-            ),
+                labelText: '',
+                hintText: '456678',
+                controller: idController,
+                bottomSpacing: 11),
 
             // Phone number (prefix icon example)
             CustomTextField(
               labelText: '',
               hintText: '1223452334',
               controller: phoneController,
-                bottomSpacing: 11,
+              bottomSpacing: 11,
               prefixIcon: const Text("+1",
                   style: TextStyle(fontWeight: FontWeight.bold)),
             ),
@@ -131,7 +130,7 @@ class _ProfileViewState extends State<ProfileView> {
               labelText: '',
               hintText: 'JohnSmith123@gmail.com',
               controller: emailController,
-                bottomSpacing: 11,
+              bottomSpacing: 11,
               prefixIcon: const Icon(Icons.mail_outline),
             ),
 
