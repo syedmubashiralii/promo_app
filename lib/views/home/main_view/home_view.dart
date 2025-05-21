@@ -1,5 +1,9 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
+import 'package:http/http.dart' as http;
 
 import '../../../controllers/home_controller.dart';
 import '../../../routes/app_pages.dart';
@@ -14,18 +18,29 @@ class HomeView extends StatefulWidget {
 
 class _HomeViewState extends State<HomeView> {
   final controller = Get.put(HomeController());
+  final box = GetStorage();
 
-  final List<String> categories = [
-    'All',
-    'Accessories',
-    'Electronics',
-    'Cloth',
-    'Home'
-  ];
-  String selectedCategory = 'All';
+  // final List<String> categories = [
+  //   'All',
+  //   'Accessories',
+  //   'Electronics',
+  //   'Cloth',
+  //   'Home'
+  // ];
+  // String selectedCategory = 'All';
+
+  List<String> categories = [];
+  String selectedCategory = '';
+  bool _isLoadingCategories = true;
 
 //comment edit
   List<bool> favoriteStatus = List.filled(6, false);
+
+  @override
+  void initState() {
+    super.initState();
+    fetchCategories();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -137,7 +152,9 @@ class _HomeViewState extends State<HomeView> {
             const Text("Categories",
                 style: TextStyle(fontWeight: FontWeight.w600)),
             const SizedBox(height: 10),
-            SizedBox(
+            _isLoadingCategories
+                ? const CircularProgressIndicator()
+            : SizedBox(
               height: 40,
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,
@@ -327,5 +344,40 @@ class _HomeViewState extends State<HomeView> {
         ),
       ),
     );
+  }
+
+  void fetchCategories() async {
+    final token = box.read('auth_token');
+    if (token == null || token.toString().isEmpty) {
+      print("No token found");
+      return;
+    }
+
+    try {
+      final response = await http.get(
+        Uri.parse('https://promo.koderspoint.com/api/categories'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final responseData = json.decode(response.body);
+        final List<dynamic> categoryData = responseData['data'];
+
+        setState(() {
+          categories = categoryData.map((e) => e['name'].toString()).toList();
+          if (categories.isNotEmpty) {
+            selectedCategory = categories[0];
+          }
+          _isLoadingCategories = false;
+        });
+      } else {
+        print("Failed to fetch categories: ${response.statusCode}");
+      }
+    } catch (e) {
+      print("Error fetching categories: $e");
+    }
   }
 }

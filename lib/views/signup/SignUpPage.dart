@@ -1,5 +1,8 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:http/http.dart' as http;
 
 import '../../routes/app_pages.dart';
 import '../../utils/color_helper.dart';
@@ -20,7 +23,11 @@ class _SignUpPageState extends State<SignUpPage> {
   final TextEditingController _dobController = TextEditingController();
   final TextEditingController _zipController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+
+  String selectedAffiliationName = "Select Status";
+  int? selectedAffiliationIndex;
 
   List<String> selectedAffiliations = [];
   List<String> allAffiliations = [
@@ -55,145 +62,132 @@ class _SignUpPageState extends State<SignUpPage> {
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 15),
           child: Center(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
                 const Text(
-                  "Sign Up!",
-                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 20),
-                CustomTextField(
-                  labelText: "Full Name:",
-                  hintText: "i.e., John Smith",
-                  controller: _fullNameController,
-                ),
-                _buildDateField(),
-                CustomTextField(
-                  labelText: "Location (Zip Code):",
-                  hintText: "i.e., 456678",
-                  controller: _zipController,
-                ),
-                _buildDropdown(),
-                const SizedBox(height: 6),
-                CustomTextField(
-                    labelText: "Email:",
-                    hintText: "i.e., JohnSmith123@gmail.com",
-                    controller: _emailController,
-                    keyboardType: TextInputType.emailAddress,
-                    prefixIcon: Image.asset(
-                      'assets/images/mail.png',
-                      width: 14,
-                      height: 14,
-                    )),
-                const SizedBox(height: 5),
-                CustomTextField(
-                  labelText: "Password:",
-                  hintText: "i.e., ************",
-                  controller: _passwordController,
-                  obscureText: _obscureText,
-                  keyboardType: TextInputType.text,
+                "Sign Up!",
+                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 20),
+              CustomTextField(
+                labelText: "Full Name:",
+                hintText: "i.e., John Smith",
+                controller: _fullNameController,
+              ),
+              _buildDateField(),
+              CustomTextField(
+                labelText: "Location (Zip Code):",
+                hintText: "i.e., 456678",
+                controller: _zipController,
+              ),
+              _buildDropdown(),
+              const SizedBox(height: 5),
+              CustomTextField(
+                  labelText: "Email:",
+                  hintText: "i.e., JohnSmith123@gmail.com",
+                  controller: _emailController,
+                  keyboardType: TextInputType.emailAddress,
                   prefixIcon: Image.asset(
-                    'assets/images/lock.png',
+                    'assets/images/mail.png',
                     width: 14,
                     height: 14,
-                  ),
-                  suffixIcon: IconButton(
-                    icon: Image.asset(
-                      _obscureText
-                          ? 'assets/images/eye.png' // Your closed eye icon
-                          : 'assets/images/eye.png', // Your open eye icon
-                      width: 24, // Customize size if needed
-                      height: 24, // Customize size if needed
-                    ),
-                    onPressed: () {
-                      setState(() {
-                        _obscureText = !_obscureText;
-                      });
-                    },
-                  ),
+                  )),
+              const SizedBox(height: 5),
+              CustomTextField(
+                labelText: "Phone Number (optional):",
+                hintText: "i.e., +1223452334",
+                controller: _phoneController,
+                keyboardType: TextInputType.phone,
+              ),
+              const SizedBox(height: 5),
+              CustomTextField(
+                labelText: "Password:",
+                hintText: "i.e., ************",
+                controller: _passwordController,
+                obscureText: _obscureText,
+                keyboardType: TextInputType.text,
+                prefixIcon: Image.asset(
+                  'assets/images/lock.png',
+                  width: 14,
+                  height: 14,
                 ),
-                const SizedBox(height: 15),
-                _isLoading
-                    ? const Center(child: CircularProgressIndicator())
-                    : ElevatedButton(
-                        onPressed: () {
-                          // Signup logic
-                          Get.offAllNamed(Routes.LOGIN);
-                          Get.snackbar("Success", "SignUp successful",
-                              backgroundColor: Colors.green,
-                              colorText: Colors.white);
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: ColorHelper.blue,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          minimumSize: const Size.fromHeight(45),
-                        ),
-                        child: const Text("Sign Up",
-                            style: TextStyle(
-                                fontSize: 16,
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold)),
-                      ),
-                const SizedBox(height: 15),
-                Center(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Text("Already have an account?"),
-                      GestureDetector(
-                        onTap: () {
-                          Get.toNamed(Routes.LOGIN);
-
-                        },
-                        child: const Text(
-                          "Login",
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black,
-                          ),
-                        ),
-                      ),
-                    ],
+                suffixIcon: IconButton(
+                  icon: Image.asset(
+                    _obscureText
+                        ? 'assets/images/eye.png' // Your closed eye icon
+                        : 'assets/images/eye.png', // Your open eye icon
+                    width: 24, // Customize size if needed
+                    height: 24, // Customize size if needed
                   ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTextField(
-      String label, String hint, TextEditingController controller,
-      {bool isPassword = false,
-      TextInputType keyboardType = TextInputType.text}) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        CustomTextField(
-          labelText: label,
-          hintText: hint,
-          controller: controller,
-          keyboardType: keyboardType,
-          obscureText: isPassword ? _obscureText : false,
-          suffixIcon: isPassword
-              ? IconButton(
-                  icon: Icon(
-                      _obscureText ? Icons.visibility : Icons.visibility_off),
                   onPressed: () {
                     setState(() {
                       _obscureText = !_obscureText;
                     });
                   },
+                ),
+              ),
+              const SizedBox(height: 15),
+              ElevatedButton(
+                onPressed: _isLoading ? null :  () async {
+                  await registerUser(
+                    name: _fullNameController.text,
+                    email: _emailController.text,
+                    location: _zipController.text,
+                    dob: _dobController.text,
+                    password: _passwordController.text,
+                    affiliationId: selectedAffiliationIndex,
+                    phoneNumber: _phoneController.text,
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: ColorHelper.blue,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  minimumSize: const Size.fromHeight(45),
+                ),
+                child: _isLoading
+                    ? const SizedBox(
+                  height: 22,
+                  width: 22,
+                  child: CircularProgressIndicator(
+                      color: Colors.blue, strokeWidth: 2),
                 )
-              : null,
+                    : const Text(
+                    "Sign Up",
+                    style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold)),
+              ),
+
+              const SizedBox(height: 15),
+          Center(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Text("Already have an account?"),
+                GestureDetector(
+                  onTap: () {
+                    Get.toNamed(Routes.LOGIN);
+                  },
+                  child: const Text(
+                    "Login",
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          ],
         ),
-        const SizedBox(height: 15),
-      ],
+      ),
+    ),)
+    ,
     );
   }
 
@@ -253,7 +247,7 @@ class _SignUpPageState extends State<SignUpPage> {
                 ),
               ),
               GestureDetector(
-                onTap: () => _showMultiSelectDialog(context),
+                onTap: () => _showSingleSelectDialog(context),
                 child: Image.asset(
                   'assets/images/drop.png',
                   width: 15,
@@ -268,13 +262,13 @@ class _SignUpPageState extends State<SignUpPage> {
     );
   }
 
-  void _showMultiSelectDialog(BuildContext context) {
+  void _showSingleSelectDialog(BuildContext context) {
     showDialog(
       context: context,
       builder: (_) {
         return Dialog(
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(15)),
           backgroundColor: Colors.white,
           child: Container(
             width: double.infinity,
@@ -285,50 +279,46 @@ class _SignUpPageState extends State<SignUpPage> {
               children: [
                 const Padding(
                   padding: EdgeInsets.only(left: 10, top: 10),
-                  // ⬅ Only left padding
                   child: Text(
-                    "Select",
+                    "Select Affiliation",
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      fontSize: 18,
+                      fontSize: 15,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ),
-                ...allAffiliations.map((item) {
-                  bool isSelected = selectedAffiliations.contains(item);
+                ...allAffiliations
+                    .asMap()
+                    .entries
+                    .map((entry) {
+                  int index = entry.key;
+                  String item = entry.value;
+                  bool isSelected = selectedAffiliationIndex == index;
+
                   return Padding(
                     padding: const EdgeInsets.symmetric(vertical: 0),
-                    // ⬅ Less vertical spacing
-                    child: Theme(
-                      data: Theme.of(context).copyWith(
-                        unselectedWidgetColor: const Color(0xFF355F9B),
-                      ),
-                      child: CheckboxListTile(
-                        title: Text(
-                          item,
-                          style: TextStyle(
-                            color: isSelected ? Colors.black : Colors.grey,
-                            fontWeight: FontWeight.w500,
-                          ),
+                    child: RadioListTile<int>(
+                      value: index,
+                      groupValue: selectedAffiliationIndex,
+                      title: Text(
+                        item,
+                        style: TextStyle(
+                          color: isSelected ? Colors.black : Colors.grey,
+                          fontWeight: FontWeight.w500,
+                          fontSize: 15,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        value: isSelected,
-                        dense: true,
-                        contentPadding: EdgeInsets.zero,
-                        controlAffinity: ListTileControlAffinity.leading,
-                        onChanged: (bool? selected) {
-                          setState(() {
-                            if (selected == true) {
-                              selectedAffiliations.add(item);
-                            } else {
-                              selectedAffiliations.remove(item);
-                            }
-                          });
-                          Navigator.pop(context);
-                          _showMultiSelectDialog(context);
-                        },
-                        checkColor: Colors.white,
-                        activeColor: const Color(0xFF30B0C7),
                       ),
+                      activeColor: const Color(0xFF30B0C7),
+                      onChanged: (int? value) {
+                        setState(() {
+                          selectedAffiliationIndex = value;
+                          selectedAffiliationName = allAffiliations[value!];
+                        });
+                        Navigator.pop(context);
+                      },
+
                     ),
                   );
                 }).toList(),
@@ -339,4 +329,77 @@ class _SignUpPageState extends State<SignUpPage> {
       },
     );
   }
+
+  Future<void> registerUser({
+    required String name,
+    required String email,
+    required String location,
+    required String dob,
+    required String password,
+    required int? affiliationId,
+    required String phoneNumber,
+  }) async {
+    if (selectedAffiliationIndex == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please select your affiliation')),
+      );
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final url = Uri.parse('https://promo.koderspoint.com/api/register');
+
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          "name": name,
+          "email": email,
+          "location": location,
+          "dob": dob,
+          "password": password,
+          "affiliation_id": affiliationId,
+          "phone_number": phoneNumber,
+        }),
+      );
+
+      setState(() {
+        _isLoading = false;
+      });
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success']) {
+          print("✅ User created successfully");
+          print("Token: ${data['data']['token']}");
+
+          Get.offAllNamed(Routes.LOGIN);
+          Get.snackbar("Success", "SignUp successful",
+              backgroundColor: Colors.green,
+              colorText: Colors.white);
+        } else {
+          print("❌ Registration failed: ${data['message']}");
+          Get.snackbar("Error", data['message'],
+              backgroundColor: Colors.red, colorText: Colors.white);
+        }
+      } else {
+        print("❌ HTTP Error: ${response.statusCode}");
+        Get.snackbar("Error", "Server error (${response.statusCode})",
+            backgroundColor: Colors.red, colorText: Colors.white);
+      }
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+      print("❌ Exception: $e");
+      Get.snackbar("Error", "Something went wrong!",
+          backgroundColor: Colors.red, colorText: Colors.white);
+    }
+  }
+
+
 }

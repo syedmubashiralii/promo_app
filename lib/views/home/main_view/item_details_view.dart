@@ -173,7 +173,7 @@ class _ItemDetailViewState extends State<ItemDetailView> {
             child: Row(
               children: [
                 SizedBox(
-                  width: MediaQuery.of(context).size.width * 0.3, // 30% of screen width
+                  width: MediaQuery.of(context).size.width * 0.3,
                   child: OutlinedButton(
                     onPressed: () {},
                     style: OutlinedButton.styleFrom(

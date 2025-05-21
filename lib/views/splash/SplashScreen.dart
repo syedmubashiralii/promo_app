@@ -1,7 +1,7 @@
 import 'dart:async';
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:get_storage/get_storage.dart';
 
 class SplashScreen extends StatefulWidget {
   @override
@@ -9,14 +9,24 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
+
+  final box = GetStorage();
+
   @override
   void initState() {
     super.initState();
 
-    // Delay of 3 seconds before navigation
     Timer(Duration(seconds: 3), () {
-      Navigator.pushReplacementNamed(context, '/login');
+      checkLoginStatus();
     });
+  }
+  void checkLoginStatus() {
+    final token = box.read('auth_token');
+    if (token != null && token.toString().isNotEmpty) {
+        Navigator.pushReplacementNamed(context, '/bottom_nav');
+      } else {
+        Navigator.pushReplacementNamed(context, '/login');
+      }
   }
 
   @override
