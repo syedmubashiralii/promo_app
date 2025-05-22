@@ -92,6 +92,7 @@ class _ProfileViewState extends State<ProfileView> {
                 children: [
                   Column(
                     children: [
+/*
                       Stack(
                         alignment: Alignment.bottomRight,
                         children: [
@@ -125,6 +126,7 @@ class _ProfileViewState extends State<ProfileView> {
                           ),
                         ],
                       ),
+*/
                       const SizedBox(height: 10),
                       Text(
                         profileName,
@@ -139,15 +141,28 @@ class _ProfileViewState extends State<ProfileView> {
                     ],
                   ),
                   const SizedBox(height: 20),
-
-                  const Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      "Personal Information",
-                      style:
-                          TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                    ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        "Personal Information",
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                      ),
+                      IconButton(
+                        icon: Image.asset(
+                          'assets/images/edit.png',
+                          width: 22,
+                          height: 22,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            isEditMode = !isEditMode;
+                          });
+                        },
+                      ),
+                    ],
                   ),
+
 
                   const SizedBox(height: 10),
                   CustomTextField(
@@ -412,17 +427,17 @@ class _ProfileViewState extends State<ProfileView> {
     request.headers['Accept'] = 'application/json';
 
     request.fields['name'] = nameController.text;
-    request.fields['email'] = emailController.text;
+    // request.fields['email'] = emailController.text;
     request.fields['location'] = dobController.text;
     request.fields['dob'] = dobController.text;
     request.fields['affiliation_id'] =
         selectedAffiliationIndex?.toString() ?? '';
     request.fields['phone_number'] = phoneController.text;
-
+/*
     if (_imageFile != null) {
       request.files
           .add(await http.MultipartFile.fromPath('image', _imageFile!.path));
-    }
+    }*/
 
     final response = await request.send();
 
