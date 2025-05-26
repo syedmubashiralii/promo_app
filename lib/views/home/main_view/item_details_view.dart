@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_ui/utils/color_helper.dart';
+import 'package:get/get.dart';
+import 'package:get/get_core/src/get_main.dart';
 
 class ItemDetailView extends StatefulWidget {
   const ItemDetailView({super.key});
@@ -9,7 +11,9 @@ class ItemDetailView extends StatefulWidget {
 }
 
 class _ItemDetailViewState extends State<ItemDetailView> {
-  @override
+  final Map<String, dynamic> item = Get.arguments;
+
+ /* @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -206,7 +210,202 @@ class _ItemDetailViewState extends State<ItemDetailView> {
         ],
       ),
     );
+  }*/
+  @override
+  Widget build(BuildContext context) {
+    final Map<String, dynamic> item = Get.arguments;
+    final imageUrl = item['media'] != null && item['media'].isNotEmpty
+        ? item['media'][0]['original_url']
+        : null;
+
+    return Scaffold(
+      appBar: AppBar(
+        leading: const BackButton(color: Colors.black),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        title: const Text(
+          'Item Details',
+          style: TextStyle(
+              color: Colors.black, fontWeight: FontWeight.w500, fontSize: 18),
+        ),
+        centerTitle: true,
+      ),
+      body: Column(
+        children: [
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Product Image
+                  Stack(
+                    children: [
+                      Container(
+                        height: 170,
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.grey.shade300),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: imageUrl != null
+                            ? ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: Image.network(
+                            imageUrl,
+                            fit: BoxFit.cover,
+                            width: double.infinity,
+                          ),
+                        )
+                            : const Center(child: Text('No image')),
+                      ),
+                      Positioned(
+                        top: 1,
+                        right: 1,
+                        child: IconButton(
+                          icon: const Icon(Icons.favorite, color: Colors.red),
+                          onPressed: () {},
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  const Center(
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.circle, size: 8, color: Color(0xffECECEC)),
+                        SizedBox(width: 4),
+                        Icon(Icons.circle, size: 8, color: ColorHelper.blue),
+                        SizedBox(width: 4),
+                        Icon(Icons.circle, size: 8, color: Color(0xffECECEC)),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Title and Price
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          item['title'] ?? 'No Title',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                      Text(
+                        item['is_free'] == 1 ? 'Free' : "\$${item['price']}",
+                        style: const TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      _buildInfoPill(
+                        label: "Location",
+                        value: item['location'] ?? 'N/A',
+                        backgroundColor: const Color(0xFFD4E8FF),
+                      ),
+                      _buildInfoPill(
+                        label: "Status",
+                        value: item['status'] ?? 'N/A',
+                        backgroundColor: const Color(0xFFEBDDF9),
+                      ),
+                      _buildInfoPill(
+                        label: "Affiliation",
+                        value: item['affiliation_id'].toString(),
+                        backgroundColor: const Color(0xFFFFDDE1),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  const Text(
+                    "Description",
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    item['description'] ?? '',
+                    style: const TextStyle(color: Colors.grey, height: 1.5),
+                  ),
+
+                  const SizedBox(height: 24),
+                  const Text(
+                    "Redemption Instructions",
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                  ),
+                  const SizedBox(height: 6),
+                  BulletList([
+                    item['redemption_instruction'] ?? 'Not available',
+                  ]),
+
+                  const SizedBox(height: 24),
+                  const Text(
+                    "Eligibility Criteria",
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                  ),
+                  const SizedBox(height: 6),
+                  BulletList([
+                    item['eligibility_criteria'] ?? 'Not available',
+                  ]),
+
+                  const SizedBox(height: 90),
+                ],
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+            child: Row(
+              children: [
+                SizedBox(
+                  width: MediaQuery.of(context).size.width * 0.3,
+                  child: OutlinedButton(
+                    onPressed: () {},
+                    style: OutlinedButton.styleFrom(
+                      side: BorderSide(color: Colors.grey.shade400),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: const Text("Report", style: TextStyle(color: Colors.black)),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                SizedBox(
+                  width: MediaQuery.of(context).size.width * 0.55,
+                  child: ElevatedButton(
+                    onPressed: () {},
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: ColorHelper.blue,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: const Text("Redeem Now", style: TextStyle(color: Colors.white)),
+                  ),
+                ),
+              ],
+            ),
+          )
+        ],
+      ),
+    );
   }
+
 
   Widget _buildInfoPill({
     required String label,

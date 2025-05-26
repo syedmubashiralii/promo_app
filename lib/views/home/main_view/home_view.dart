@@ -1,10 +1,8 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
-import 'package:http/http.dart' as http;
 
+import '../../../ApiService/api_service.dart';
 import '../../../controllers/home_controller.dart';
 import '../../../routes/app_pages.dart';
 import '../../../utils/color_helper.dart';
@@ -17,29 +15,25 @@ class HomeView extends StatefulWidget {
 }
 
 class _HomeViewState extends State<HomeView> {
+  final ApiService apiService = ApiService();
+
   final controller = Get.put(HomeController());
   final box = GetStorage();
-
-  // final List<String> categories = [
-  //   'All',
-  //   'Accessories',
-  //   'Electronics',
-  //   'Cloth',
-  //   'Home'
-  // ];
-  // String selectedCategory = 'All';
 
   List<String> categories = [];
   String selectedCategory = '';
   bool _isLoadingCategories = true;
 
-//comment edit
-  List<bool> favoriteStatus = List.filled(6, false);
+  List<bool> favoriteStatus = [];
+  Set<int> favoritedItemIds = {};
+  List<dynamic> items = [];
+  bool isLoading = true;
 
   @override
   void initState() {
     super.initState();
     fetchCategories();
+    fetchItems();
   }
 
   @override
@@ -154,48 +148,48 @@ class _HomeViewState extends State<HomeView> {
             const SizedBox(height: 10),
             _isLoadingCategories
                 ? const CircularProgressIndicator()
-            : SizedBox(
-              height: 40,
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                itemCount: categories.length,
-                itemBuilder: (_, index) {
-                  String category = categories[index];
-                  bool isSelected = category == selectedCategory;
+                : SizedBox(
+                    height: 40,
+                    child: ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: categories.length,
+                      itemBuilder: (_, index) {
+                        String category = categories[index];
+                        bool isSelected = category == selectedCategory;
 
-                  return Padding(
-                    padding: const EdgeInsets.only(right: 10),
-                    child: ChoiceChip(
-                      label: Text(
-                        category,
-                        style: TextStyle(
-                          color: isSelected
-                              ? Colors.white
-                              : const Color(0xFFB3B3B3),
-                        ),
-                      ),
-                      selected: isSelected,
-                      selectedColor: ColorHelper.blue,
-                      backgroundColor: Colors.white,
-                      side: BorderSide(
-                        color: isSelected
-                            ? ColorHelper.blue
-                            : const Color(0xFFB3B3B3),
-                      ),
-                      onSelected: (_) {
-                        setState(() {
-                          selectedCategory = category;
-                        });
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 10),
+                          child: ChoiceChip(
+                            label: Text(
+                              category,
+                              style: TextStyle(
+                                color: isSelected
+                                    ? Colors.white
+                                    : const Color(0xFFB3B3B3),
+                              ),
+                            ),
+                            selected: isSelected,
+                            selectedColor: ColorHelper.blue,
+                            backgroundColor: Colors.white,
+                            side: BorderSide(
+                              color: isSelected
+                                  ? ColorHelper.blue
+                                  : const Color(0xFFB3B3B3),
+                            ),
+                            onSelected: (_) {
+                              setState(() {
+                                selectedCategory = category;
+                              });
+                            },
+                            showCheckmark: false,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                        );
                       },
-                      showCheckmark: false,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
                     ),
-                  );
-                },
-              ),
-            ),
+                  ),
 
             const SizedBox(height: 20),
 
@@ -203,143 +197,156 @@ class _HomeViewState extends State<HomeView> {
             const Text("Free Items",
                 style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16)),
             const SizedBox(height: 10),
-
-            GridView.builder(
-              physics: const NeverScrollableScrollPhysics(),
-              shrinkWrap: true,
-              itemCount: 6,
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                mainAxisSpacing: 10,
-                crossAxisSpacing: 10,
-                // childAspectRatio: 0.9,
-              ),
-              itemBuilder: (_, index) {
-                return SingleChildScrollView(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      border: Border.all(color: const Color(0xFFE1E1E1)),
-                      borderRadius: BorderRadius.circular(10),
+            isLoading
+                ? const Center(
+                    child: CircularProgressIndicator(),
+                  )
+                : GridView.builder(
+                    physics: NeverScrollableScrollPhysics(),
+                    shrinkWrap: true,
+                    itemCount: items.length,
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      mainAxisSpacing: 10,
+                      crossAxisSpacing: 10,
                     ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      // Ensures content-based height
-                      children: [
-                        // Image + Favorite Icon
-                        Stack(
+                    itemBuilder: (_, index) {
+                      final item = items[index];
+                      final mediaList = item['media'] ?? [];
+                      final imageUrl = (mediaList.isNotEmpty &&
+                              mediaList[0]['original_url'] != null &&
+                              mediaList[0]['original_url']
+                                  .toString()
+                                  .isNotEmpty)
+                          ? mediaList[0]['original_url']
+                          : null;
+                      final title = item['title'] ?? '';
+                      final description = item['description'] ?? '';
+                      final price =
+                          item['is_free'] == 1 ? 'Free' : '\$${item['price']}';
+
+                      return Container(
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Color(0xFFE1E1E1)),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            ClipRRect(
-                              borderRadius: const BorderRadius.only(
-                                topLeft: Radius.circular(10),
-                                topRight: Radius.circular(10),
-                              ),
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 8, vertical: 4),
-                                child: Image.asset(
-                                  'assets/images/watch.png',
-                                  height: 70,
-                                  width: double.infinity,
-                                  fit: BoxFit.cover,
+                            // Image and favorite icon
+                            Stack(
+                              children: [
+                                ClipRRect(
+                                  borderRadius: BorderRadius.only(
+                                    topLeft: Radius.circular(10),
+                                    topRight: Radius.circular(10),
+                                  ),
+                                  child: Padding(
+                                    padding: EdgeInsets.symmetric(
+                                        horizontal: 8, vertical: 4),
+                                    child: imageUrl != null
+                                        ? Image.network(
+                                            imageUrl,
+                                            height: 70,
+                                            width: double.infinity,
+                                            fit: BoxFit.cover,
+                                          )
+                                        : Image.asset(
+                                            'assets/images/no_img.png',
+                                            height: 70,
+                                            width: double.infinity,
+                                            fit: BoxFit.cover,
+                                          ),
+                                  ),
                                 ),
+                                Positioned(
+                                  top: 8,
+                                  right: 8,
+                                  child: GestureDetector(
+                                    onTap: () => toggleFavorite(index),
+                                    child: Icon(
+                                      favoriteStatus[index]
+                                          ? Icons.favorite
+                                          : Icons.favorite_border,
+                                      color: Colors.red,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+
+                            // Title & Description
+                            Padding(
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 4),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                          title,
+                                          style: TextStyle(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w500),
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                      Text(
+                                        price,
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 11),
+                                      ),
+                                    ],
+                                  ),
+                                  SizedBox(height: 3),
+                                  Text(
+                                    description,
+                                    style: TextStyle(
+                                        color: Colors.grey, fontSize: 10),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ],
                               ),
                             ),
-                            Positioned(
-                              top: 8,
-                              right: 8,
-                              child: GestureDetector(
-                                onTap: () {
-                                  setState(() {
-                                    favoriteStatus[index] =
-                                        !favoriteStatus[index];
-                                  });
-                                },
-                                child: Icon(
-                                  favoriteStatus[index]
-                                      ? Icons.favorite // filled
-                                      : Icons.favorite_border, // outline
-                                  color: Colors.red,
+
+                            // View Details
+                            Padding(
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 3),
+                              child: SizedBox(
+                                width: double.infinity,
+                                height: 28,
+                                child: ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: ColorHelper.blue,
+                                    padding: EdgeInsets.zero,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                  ),
+                                  onPressed: () {
+                                    Get.toNamed(Routes.VIEWDETAIL,
+                                        arguments: item);
+                                  },
+                                  child: Text(
+                                    "View Details",
+                                    style: TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.white),
+                                  ),
                                 ),
                               ),
                             ),
                           ],
                         ),
-
-                        // Info
-                        const Padding(
-                          padding:
-                              EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Expanded(
-                                    child: Text(
-                                      "Fossil Men's Quartz",
-                                      style: TextStyle(
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w500),
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                  Text(
-                                    "Free",
-                                    style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 11),
-                                  ),
-                                ],
-                              ),
-                              SizedBox(height: 3),
-                              Text(
-                                "From an Italy matte dial to brushed jet...",
-                                style:
-                                    TextStyle(color: Colors.grey, fontSize: 10),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ],
-                          ),
-                        ),
-
-                        // View Details Button
-                        Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 3),
-                          child: SizedBox(
-                            width: double.infinity,
-                            height: 28,
-                            child: ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: ColorHelper.blue,
-                                padding: EdgeInsets.zero,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(6),
-                                ),
-                              ),
-                              onPressed: () {
-                                Get.toNamed(Routes.VIEWDETAIL);
-                              },
-                              child: const Text(
-                                "View Details",
-                                style: TextStyle(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.white),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              },
-            )
+                      );
+                    },
+                  )
           ],
         ),
       ),
@@ -347,37 +354,63 @@ class _HomeViewState extends State<HomeView> {
   }
 
   void fetchCategories() async {
-    final token = box.read('auth_token');
-    if (token == null || token.toString().isEmpty) {
-      print("No token found");
-      return;
-    }
-
     try {
-      final response = await http.get(
-        Uri.parse('https://promo.koderspoint.com/api/categories'),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Accept': 'application/json',
-        },
-      );
-
-      if (response.statusCode == 200) {
-        final responseData = json.decode(response.body);
-        final List<dynamic> categoryData = responseData['data'];
-
-        setState(() {
-          categories = categoryData.map((e) => e['name'].toString()).toList();
-          if (categories.isNotEmpty) {
-            selectedCategory = categories[0];
-          }
-          _isLoadingCategories = false;
-        });
-      } else {
-        print("Failed to fetch categories: ${response.statusCode}");
-      }
+      final fetchedCategories = await apiService.fetchCategories();
+      setState(() {
+        categories = fetchedCategories;
+        if (categories.isNotEmpty) {
+          selectedCategory = categories[0];
+        }
+        _isLoadingCategories = false;
+      });
     } catch (e) {
       print("Error fetching categories: $e");
+      setState(() {
+        _isLoadingCategories = false;
+      });
     }
+  }
+
+  void fetchItems() async {
+    setState(() {
+      isLoading = true;
+    });
+
+    try {
+      final itemData = await apiService.fetchItems();
+      final favData = await apiService.fetchFavoriteItems();
+
+      favoritedItemIds = favData.map<int>((fav) => fav['item_id']).toSet();
+
+      setState(() {
+        items = itemData;
+        favoriteStatus = itemData
+            .map<bool>((item) => favoritedItemIds.contains(item['id']))
+            .toList();
+        isLoading = false;
+      });
+    } catch (e) {
+      print("Error: $e");
+      showSnackbar("Error occurred");
+      setState(() => isLoading = false);
+    }
+  }
+
+  void toggleFavorite(int index) async {
+    final itemId = items[index]['id'];
+    final success = await apiService.storeFavorite(itemId);
+
+    if (success) {
+      setState(() {
+        favoriteStatus[index] = !favoriteStatus[index];
+      });
+    } else {
+      showSnackbar("Failed to update favorite");
+    }
+  }
+
+  void showSnackbar(String message) {
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
   }
 }
