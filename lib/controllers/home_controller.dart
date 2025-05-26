@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:get/get.dart';
 
 class HomeController extends GetxController {
@@ -5,5 +7,14 @@ class HomeController extends GetxController {
 
   void changeTab(int index) {
     selectedIndex.value = index;
+
+    if (index == 0) {
+      homeRefreshCallback?.call();
+    } else if (index == 2) {
+      favRefreshCallback?.call();
+    }
   }
+
+  VoidCallback? homeRefreshCallback;
+  VoidCallback? favRefreshCallback;
 }

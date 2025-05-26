@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_ui/utils/color_helper.dart';
 import 'package:intl/intl.dart';
 
+import '../../../ApiService/api_service.dart';
 import '../../../utils/widgets/CustomTextField.dart';
 
 class FilterView extends StatefulWidget {
@@ -12,6 +13,8 @@ class FilterView extends StatefulWidget {
 }
 
 class _FilterViewState extends State<FilterView> {
+  final ApiService apiService = ApiService();
+
   TextEditingController _selectedDateCon = TextEditingController();
   final TextEditingController _zipController = TextEditingController();
 
@@ -24,9 +27,16 @@ class _FilterViewState extends State<FilterView> {
     "Non-Profit Worker",
     "Government Employee"
   ];
-  List<String> selectedCategories = [];
+  List<String> categories = [];
+  String selectedCategory = '';
+  bool _isLoadingCategories = true;
 
+  @override
+  void initState() {
+    super.initState();
+    fetchCategories();
 
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -63,11 +73,50 @@ class _FilterViewState extends State<FilterView> {
                     Wrap(
                       spacing: 8,
                       children: [
-                        _buildCategoryChip("Accessories"),
-                        _buildCategoryChip("Electronics"),
-                        _buildCategoryChip("Cloth"),
-                        _buildCategoryChip("Home Appliances"),
-                        _buildCategoryChip("Furniture's"),
+                        _isLoadingCategories
+                            ? const CircularProgressIndicator()
+                            : SizedBox(
+                          height: 40,
+                          child: ListView.builder(
+                            scrollDirection: Axis.horizontal,
+                            itemCount: categories.length,
+                            itemBuilder: (_, index) {
+                              String category = categories[index];
+                              bool isSelected = category == selectedCategory;
+
+                              return Padding(
+                                padding: const EdgeInsets.only(right: 10),
+                                child: ChoiceChip(
+                                  label: Text(
+                                    category,
+                                    style: TextStyle(
+                                      color: isSelected
+                                          ? Colors.white
+                                          : const Color(0xFFB3B3B3),
+                                    ),
+                                  ),
+                                  selected: isSelected,
+                                  selectedColor: ColorHelper.blue,
+                                  backgroundColor: Colors.white,
+                                  side: BorderSide(
+                                    color: isSelected
+                                        ? ColorHelper.blue
+                                        : const Color(0xFFB3B3B3),
+                                  ),
+                                  onSelected: (_) {
+                                    setState(() {
+                                      selectedCategory = category;
+                                    });
+                                  },
+                                  showCheckmark: false,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
                       ],
                     ),
                     const SizedBox(height: 20),
@@ -91,7 +140,7 @@ class _FilterViewState extends State<FilterView> {
                         _zipController.clear();
                         _selectedDateCon.clear();
                         selectedAffiliations.clear();
-                        selectedCategories.clear();
+                        selectedCategory="";
                       });
                     },
                     style: ElevatedButton.styleFrom(
@@ -107,8 +156,13 @@ class _FilterViewState extends State<FilterView> {
                 Expanded(
                   child: ElevatedButton(
                     onPressed: () {
-                      // Apply logic here
+                      Navigator.pop(context, {
+                        'zipCode': _zipController.text.trim(),
+                        'selectedCategory': selectedCategory,
+                        'selectedAffiliations': selectedAffiliations,
+                      });
                     },
+
                     style: ElevatedButton.styleFrom(
                       backgroundColor: ColorHelper.blue,
                       shape: RoundedRectangleBorder(
@@ -245,46 +299,23 @@ class _FilterViewState extends State<FilterView> {
     );
   }
 
-  Widget _buildCategoryChip(String label) {
-    final bool selected = selectedCategories.contains(label);
 
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          if (selected) {
-            selectedCategories.remove(label);
-          } else {
-            selectedCategories.add(label);
-          }
-        });
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        margin: const EdgeInsets.only(bottom: 8),
-        decoration: BoxDecoration(
-          color: selected ? ColorHelper.blue : Colors.white,
-          borderRadius: BorderRadius.circular(6),
-          border: Border.all(
-            color: selected ? ColorHelper.blue : const Color(0xFFB3B3B3),
-          ),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              label,
-              style: TextStyle(
-                color: selected ? Colors.white : const Color(0xFFB3B3B3),
-              ),
-            ),
-            if (selected) ...[
-              const SizedBox(width: 6),
-              const Icon(Icons.close, size: 16, color: Colors.white),
-            ],
-          ],
-        ),
-      ),
-    );
+
+  void fetchCategories() async {
+    try {
+      final fetchedCategories = await apiService.fetchCategories();
+      setState(() {
+        categories = fetchedCategories;
+        if (categories.isNotEmpty) {
+          selectedCategory = categories[0];
+        }
+        _isLoadingCategories = false;
+      });
+    } catch (e) {
+      print("Error fetching categories: $e");
+      setState(() {
+        _isLoadingCategories = false;
+      });
+    }
   }
-
 }

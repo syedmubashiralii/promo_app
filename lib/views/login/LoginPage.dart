@@ -205,6 +205,8 @@ class _LoginPageState extends State<LoginPage> {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
+        print("🔁 API Response: $data");
+
         if (data['success']) {
           final token = data['data']['token'];
           print("Token: $token");
@@ -227,6 +229,7 @@ class _LoginPageState extends State<LoginPage> {
       setState(() {
         _isLoading = false;
       });
+      print("❌ Exception during login: $e");
       Get.snackbar("Error", "Something went wrong. Try again later.",
           backgroundColor: Colors.red, colorText: Colors.white);
     }

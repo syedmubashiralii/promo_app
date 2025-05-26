@@ -6,6 +6,7 @@ import '../../../ApiService/api_service.dart';
 import '../../../controllers/home_controller.dart';
 import '../../../routes/app_pages.dart';
 import '../../../utils/color_helper.dart';
+import 'filter_view.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({super.key});
@@ -14,7 +15,7 @@ class HomeView extends StatefulWidget {
   _HomeViewState createState() => _HomeViewState();
 }
 
-class _HomeViewState extends State<HomeView> {
+class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
   final ApiService apiService = ApiService();
 
   final controller = Get.put(HomeController());
@@ -27,14 +28,49 @@ class _HomeViewState extends State<HomeView> {
   List<bool> favoriteStatus = [];
   Set<int> favoritedItemIds = {};
   List<dynamic> items = [];
+  List<dynamic> filteredItems = [];
   bool isLoading = true;
+
+  String zipCode = '';
+  List<String> selectedAffiliations = [];
+  final Map<String, int> statusIdMap = {
+    "Student": 1,
+    "Veteran": 2,
+    "Military": 3,
+    "Retired": 4,
+    "Non-Profit Worker": 5,
+    "Government Employee": 6,
+  };
+
+  final TextEditingController _searchController = TextEditingController();
+  String searchQuery = '';
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
+
     fetchCategories();
     fetchItems();
+
+    controller.homeRefreshCallback = () {
+      fetchItems();
+    };
   }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      fetchItems(); // Refresh favorites on resume
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -67,14 +103,21 @@ class _HomeViewState extends State<HomeView> {
                     child: Row(
                       children: [
                         const SizedBox(width: 10),
-                        const Expanded(
+                        Expanded(
                           child: TextField(
-                            decoration: InputDecoration(
+                            controller: _searchController,
+                            onChanged: (value) {
+                              setState(() {
+                                searchQuery = value.toLowerCase();
+                                filterItemsByCategory();
+                              });
+                            },
+                            decoration: const InputDecoration(
                               hintText: 'Search items',
                               border: InputBorder.none,
                               isCollapsed: true,
                             ),
-                            style: TextStyle(fontSize: 14),
+                            style: const TextStyle(fontSize: 14),
                           ),
                         ),
                         const SizedBox(width: 10),
@@ -132,8 +175,26 @@ class _HomeViewState extends State<HomeView> {
                       width: 20,
                       height: 20,
                     ),
-                    onPressed: () {
-                      Get.toNamed(Routes.FILTERVIEW);
+                    onPressed: () async {
+
+                      // Get.toNamed(Routes.FILTERVIEW);
+
+                      final result = await Get.to(() => const FilterView());
+
+                      if (result != null && result is Map) {
+                        final zipCode = result['zipCode'] ?? '';
+                        final selectedCategory = result['selectedCategory'] ?? 'All';
+                        final List<String> selectedAffiliations = List<String>.from(result['selectedAffiliations'] ?? []);
+
+                        setState(() {
+                          this.selectedCategory = selectedCategory;
+                          this.zipCode = zipCode; // Define `zipCode` in your state
+                          this.selectedAffiliations = selectedAffiliations; // Define it too
+                        });
+
+                        filterItemsByAllConditions();
+                      }
+
                     },
                   ),
                 ),
@@ -179,6 +240,7 @@ class _HomeViewState extends State<HomeView> {
                             onSelected: (_) {
                               setState(() {
                                 selectedCategory = category;
+                                filterItemsByCategory();
                               });
                             },
                             showCheckmark: false,
@@ -202,16 +264,16 @@ class _HomeViewState extends State<HomeView> {
                     child: CircularProgressIndicator(),
                   )
                 : GridView.builder(
-                    physics: NeverScrollableScrollPhysics(),
+                    physics: const NeverScrollableScrollPhysics(),
                     shrinkWrap: true,
-                    itemCount: items.length,
-                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    itemCount: filteredItems.length,
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 2,
                       mainAxisSpacing: 10,
                       crossAxisSpacing: 10,
                     ),
                     itemBuilder: (_, index) {
-                      final item = items[index];
+                      final item = filteredItems[index];
                       final mediaList = item['media'] ?? [];
                       final imageUrl = (mediaList.isNotEmpty &&
                               mediaList[0]['original_url'] != null &&
@@ -237,7 +299,7 @@ class _HomeViewState extends State<HomeView> {
                             Stack(
                               children: [
                                 ClipRRect(
-                                  borderRadius: BorderRadius.only(
+                                  borderRadius: const BorderRadius.only(
                                     topLeft: Radius.circular(10),
                                     topRight: Radius.circular(10),
                                   ),
@@ -378,7 +440,7 @@ class _HomeViewState extends State<HomeView> {
 
     try {
       final itemData = await apiService.fetchItems();
-      final favData = await apiService.fetchFavoriteItems();
+      final favData = await apiService.fetchFavoriteList();
 
       favoritedItemIds = favData.map<int>((fav) => fav['item_id']).toSet();
 
@@ -387,6 +449,7 @@ class _HomeViewState extends State<HomeView> {
         favoriteStatus = itemData
             .map<bool>((item) => favoritedItemIds.contains(item['id']))
             .toList();
+        filterItemsByCategory();
         isLoading = false;
       });
     } catch (e) {
@@ -394,6 +457,45 @@ class _HomeViewState extends State<HomeView> {
       showSnackbar("Error occurred");
       setState(() => isLoading = false);
     }
+  }
+  void filterItemsByCategory() {
+    if (selectedCategory == 'All') {
+      filteredItems = items;
+    } else {
+      filteredItems = items.where((item) {
+        final category = item['categories'];
+        return category != null &&
+            category['name']?.toLowerCase() == selectedCategory.toLowerCase();
+      }).toList();
+    }
+
+    if (searchQuery.isNotEmpty) {
+      filteredItems = filteredItems.where((item) {
+        final title = item['title']?.toLowerCase() ?? '';
+        final description = item['description']?.toLowerCase() ?? '';
+        return title.contains(searchQuery) || description.contains(searchQuery);
+      }).toList();
+    }
+
+  }
+
+  void filterItemsByAllConditions() {
+    filteredItems = items.where((item) {
+      final category = item['categories']?['name']?.toLowerCase() ?? '';
+      final itemZip = item['location']?.toLowerCase() ?? '';
+      final itemAffiliation = item['affiliation_id']?.toString();
+
+      final matchCategory = selectedCategory == 'All' || category == selectedCategory.toLowerCase();
+      final matchZip = zipCode.isEmpty || itemZip.contains(zipCode.toLowerCase());
+      final matchAffiliation = selectedAffiliations.isEmpty ||
+          selectedAffiliations.any((status) {
+            return statusIdMap[status].toString() == itemAffiliation;
+          });
+
+      return matchCategory && matchZip && matchAffiliation;
+    }).toList();
+
+    setState(() {});
   }
 
   void toggleFavorite(int index) async {

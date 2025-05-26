@@ -1,5 +1,12 @@
-import 'package:flutter/material.dart';
+import 'dart:convert';
 
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
+import 'package:http/http.dart' as http;
+
+import '../../ApiService/api_service.dart';
+import '../../controllers/home_controller.dart';
 import '../../utils/color_helper.dart';
 
 class FavouriteView extends StatefulWidget {
@@ -10,15 +17,22 @@ class FavouriteView extends StatefulWidget {
 }
 
 class _FavouriteViewState extends State<FavouriteView> {
-  // Dummy favorite list
-  final List<Map<String, String>> favoriteItems = [
-    {
-      'title': "Fossil Men's Quartz",
-      'subtitle': "From an inky matte dial to...",
-      'image': 'assets/images/watch.png',
-    },
-    // Add more items if needed
-  ];
+  final ApiService apiService = ApiService();
+
+  List<Map<String, dynamic>> favoriteItems = [];
+  bool isLoading = true;
+  final box = GetStorage();
+
+  @override
+  void initState() {
+    super.initState();
+    fetchFavoriteItems();
+
+    final controller = Get.find<HomeController>();
+    controller.favRefreshCallback = () {
+      fetchFavoriteItems();
+    };
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -36,76 +50,125 @@ class _FavouriteViewState extends State<FavouriteView> {
           ),
         ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: ListView.separated(
-          itemCount: favoriteItems.length,
-          separatorBuilder: (_, __) => const SizedBox(height: 12),
-          itemBuilder: (_, index) {
-            final item = favoriteItems[index];
-            return Container(
-              decoration: BoxDecoration(
-                color: ColorHelper.textFieldBGColor,
-                border: Border.all(color: ColorHelper.textFieldBorderColor),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: ListTile(
-                contentPadding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 1),
-                leading: Container(
-                  padding: const EdgeInsets.only(left: 10, right: 10),
-                  // Padding for the border space
-                  decoration: BoxDecoration(
-                    border: Border.all(color: ColorHelper.textFieldBorderColor),
-                    // Light grey border
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(6),
-                    child: Image.asset(
-                      item['image']!,
-                      width: 45,
-                      height: 45,
-                      fit: BoxFit.cover,
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : Padding(
+              padding: const EdgeInsets.all(16),
+              child: favoriteItems.isEmpty
+                  ? const Center(child: Text("No favorites found"))
+                  : ListView.separated(
+                      itemCount: favoriteItems.length,
+                      separatorBuilder: (_, __) => const SizedBox(height: 12),
+                      itemBuilder: (_, index) {
+                        final item = favoriteItems[index];
+                        final isNetworkImage =
+                            item['image'].toString().startsWith('http');
+
+                        return Container(
+                          decoration: BoxDecoration(
+                            color: ColorHelper.textFieldBGColor,
+                            border: Border.all(
+                                color: ColorHelper.textFieldBorderColor),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: ListTile(
+                            contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 1),
+                            leading: Container(
+                              padding:
+                                  const EdgeInsets.only(left: 10, right: 10),
+                              decoration: BoxDecoration(
+                                border: Border.all(
+                                    color: ColorHelper.textFieldBorderColor),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(6),
+                                child: isNetworkImage
+                                    ? Image.network(
+                                        item['image'],
+                                        width: 45,
+                                        height: 45,
+                                        fit: BoxFit.cover,
+                                      )
+                                    : Image.asset(
+                                        item['image'],
+                                        width: 45,
+                                        height: 45,
+                                        fit: BoxFit.cover,
+                                      ),
+                              ),
+                            ),
+                            title: Text(
+                              item['title'],
+                              style: const TextStyle(
+                                  fontSize: 14, fontWeight: FontWeight.w600),
+                            ),
+                            subtitle: Text(
+                              item['subtitle'],
+                              style: const TextStyle(
+                                  fontSize: 12, color: Colors.grey),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            trailing: GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  // favoriteItems.removeAt(index);
+                                  final favId = favoriteItems[index]['favId'];
+                                  deleteFavoriteItem(favId, index);
+                                });
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(6),
+                                  border: Border.all(
+                                      color: ColorHelper.textFieldBorderColor),
+                                ),
+                                child: Image.asset(
+                                  "assets/images/ic_delete.png",
+                                  height: 22,
+                                  width: 22,
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      },
                     ),
-                  ),
-                ),
-                title: Text(
-                  item['title']!,
-                  style: const TextStyle(
-                      fontSize: 14, fontWeight: FontWeight.w600),
-                ),
-                subtitle: Text(
-                  item['subtitle']!,
-                  style: const TextStyle(fontSize: 12, color: Colors.grey),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                trailing: GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      favoriteItems.removeAt(index);
-                    });
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(6),
-                      border:
-                          Border.all(color: ColorHelper.textFieldBorderColor),
-                    ),
-                    child: Image.asset(
-                      "assets/images/ic_delete.png",
-                      height: 22,
-                      width: 22, // Replace with your own asset
-                    ),
-                  ),
-                ),
-              ),
-            );
-          },
-        ),
-      ),
+            ),
     );
   }
+  Future<void> fetchFavoriteItems() async {
+    setState(() => isLoading = true);
+    try {
+      final items = await apiService.fetchFavoriteItems();
+      setState(() {
+        favoriteItems = items;
+        isLoading = false;
+      });
+    } catch (_) {
+      setState(() => isLoading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to load favorites')),
+      );
+    }
+  }
+  Future<void> deleteFavoriteItem(int favId, int index) async {
+    final success = await apiService.deleteFavoriteItem(favId);
+    if (success) {
+      setState(() {
+        favoriteItems.removeAt(index);
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Favorite item deleted')),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to delete favorite item')),
+      );
+    }
+  }
+
 }

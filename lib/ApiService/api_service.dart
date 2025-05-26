@@ -22,7 +22,7 @@ class ApiService {
     }
   }
 
-  Future<List<dynamic>> fetchFavoriteItems() async {
+  Future<List<dynamic>> fetchFavoriteList() async {
     final response = await http.get(Uri.parse('$baseUrl/favourite-item'), headers: _headers);
     if (response.statusCode == 200) {
       return json.decode(response.body)['data'];
@@ -45,6 +45,9 @@ class ApiService {
   }
 
   Future<List<String>> fetchCategories() async {
+
+    print("token Fetch: $token");
+
     if (token == null || token!.isEmpty) throw Exception("No token found");
 
     final response = await http.get(
@@ -62,5 +65,61 @@ class ApiService {
   }
 
 
-// Add more methods like fetchCategories(), updateProfile(), etc. as needed
-}
+  Future<List<Map<String, dynamic>>> fetchFavoriteItems() async {
+    final token = box.read('auth_token');
+    if (token == null) return [];
+
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/favourite-item'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body)['data'];
+        return data.map<Map<String, dynamic>>((fav) {
+          final item = fav['items'][0];
+          return {
+            'favId': fav['id'],
+            'title': item['title'] ?? '',
+            'subtitle': item['description'] ?? '',
+            'image': item['media'].isNotEmpty
+                ? item['media'][0]['original_url']
+                : 'assets/images/no_img.png',
+          };
+        }).toList();
+      } else {
+        throw Exception('Failed to fetch favorite items');
+      }
+    } catch (e) {
+      print("Error fetching favorites: $e");
+      rethrow;
+    }
+  }
+
+  Future<bool> deleteFavoriteItem(int favId) async {
+    final token = box.read('auth_token');
+    if (token == null) return false;
+
+    try {
+      final response = await http.delete(
+        Uri.parse('$baseUrl/favourite-item/destroy/$favId'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        return true;
+      } else {
+        return false;
+      }
+    } catch (e) {
+      print("Error deleting favorite: $e");
+      return false;
+    }
+  }}
