@@ -21,7 +21,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return GetMaterialApp(
         debugShowCheckedModeBanner: false,
-        title: "Promo App",
+        title: "FreeBee",
         theme: ThemeData(
           scaffoldBackgroundColor: Colors.white,
         ),

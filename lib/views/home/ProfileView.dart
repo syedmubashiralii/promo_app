@@ -148,34 +148,37 @@ class _ProfileViewState extends State<ProfileView> {
                     ),
                   ),
 
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 14),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFFAFAFA),
-                      border:
-                          Border.all(color: const Color(0xFFE1E1E1), width: 1),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Expanded(
-                          child: Text(
-                            selectedAffiliationName,
-                            style: const TextStyle(fontSize: 14),
-                            overflow: TextOverflow.ellipsis,
+                  InkWell(
+                    onTap: () => _showSingleSelectDialog(context),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 14),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFAFAFA),
+                        border:
+                            Border.all(color: const Color(0xFFE1E1E1), width: 1),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              selectedAffiliationName,
+                              style: const TextStyle(fontSize: 14),
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
-                        ),
-                        GestureDetector(
-                          onTap: () => _showSingleSelectDialog(context),
-                          child: Image.asset(
-                            'assets/images/drop.png',
-                            width: 15,
-                            height: 15,
+                          GestureDetector(
+                            
+                            child: Image.asset(
+                              'assets/images/drop.png',
+                              width: 15,
+                              height: 15,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
 
