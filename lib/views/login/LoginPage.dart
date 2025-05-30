@@ -86,10 +86,10 @@ class _LoginPageState extends State<LoginPage> {
                         suffixIcon: IconButton(
                           icon: Image.asset(
                             _obscureText
-                                ? 'assets/images/eye.png' // Your closed eye icon
-                                : 'assets/images/eye.png', // Your open eye icon
-                            width: 24, // Customize size if needed
-                            height: 24, // Customize size if needed
+                                ? 'assets/images/eye_on.png'
+                                : 'assets/images/eye_off.png',
+                            width: 24,
+                            height: 24,
                           ),
                           onPressed: () {
                             setState(() {
@@ -209,11 +209,15 @@ class _LoginPageState extends State<LoginPage> {
 
         if (data['success']) {
           final token = data['data']['token'];
+          final email = data['data']['email'];
+          final location = data['data']['location'];
           print("Token: $token");
+          print("location: $location");
 
-          // Save token locally
           final box = GetStorage();
           box.write('auth_token', token);
+          box.write('user_email', email);
+          box.write('user_location', location);
           Get.offAllNamed(Routes.BOTTOM_NAV);
           Get.snackbar("Success", "Login successful",
               backgroundColor: Colors.green, colorText: Colors.white);

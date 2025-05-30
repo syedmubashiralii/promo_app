@@ -10,6 +10,8 @@ class HomeController extends GetxController {
 
     if (index == 0) {
       homeRefreshCallback?.call();
+    } else if (index == 1) {
+      redeemRefreshCallback?.call();
     } else if (index == 2) {
       favRefreshCallback?.call();
     }
@@ -17,4 +19,5 @@ class HomeController extends GetxController {
 
   VoidCallback? homeRefreshCallback;
   VoidCallback? favRefreshCallback;
+  VoidCallback? redeemRefreshCallback;
 }

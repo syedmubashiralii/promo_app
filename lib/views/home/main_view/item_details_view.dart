@@ -1,7 +1,13 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_ui/utils/color_helper.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
+import 'package:get_storage/get_storage.dart';
+import 'package:http/http.dart' as http;
+
+import '../report_view.dart';
 
 class ItemDetailView extends StatefulWidget {
   const ItemDetailView({super.key});
@@ -13,204 +19,6 @@ class ItemDetailView extends StatefulWidget {
 class _ItemDetailViewState extends State<ItemDetailView> {
   final Map<String, dynamic> item = Get.arguments;
 
- /* @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        leading: const BackButton(color: Colors.black),
-        backgroundColor: Colors.white,
-        elevation: 0,
-        title: const Text(
-          'Item Details',
-          style: TextStyle(
-              color: Colors.black, fontWeight: FontWeight.w500, fontSize: 18),
-        ),
-        centerTitle: true,
-      ),
-      body: Column(
-        children: [
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Product Image
-                  Stack(
-                    children: [
-                      Container(
-                        height: 170,
-                        width: double.infinity,
-                        decoration: BoxDecoration(
-                          border: Border.all(color: Colors.grey.shade300),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const Center(
-                          child: Image(
-                            image: AssetImage('assets/images/watch.png'),
-                            fit: BoxFit.contain,
-                          ),
-                        ),
-                      ),
-                      Positioned(
-                        top: 1,
-                        right: 1,
-                        child: IconButton(
-                          icon: const Icon(Icons.favorite, color: Colors.red),
-                          onPressed: () {
-                            // Handle favorite toggle
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 8),
-                  const Center(
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.circle, size: 8, color: Color(0xffECECEC)),
-                        SizedBox(width: 4),
-                        Icon(Icons.circle, size: 8, color: ColorHelper.blue),
-                        SizedBox(width: 4),
-                        Icon(Icons.circle, size: 8, color: Color(0xffECECEC)),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Title and Price
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: const [
-                      Expanded(
-                        child: Text(
-                          "Fossil Men's Nate Quartz",
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ),
-                      Text(
-                        "Free",
-                        style: TextStyle(
-                          fontSize: 17,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      _buildInfoPill(
-                        label: "Location",
-                        value: "45454",
-                        backgroundColor: const Color(0xFFD4E8FF),
-                      ),
-                      _buildInfoPill(
-                        label: "Status",
-                        value: "Students",
-                        backgroundColor: const Color(0xFFEBDDF9),
-                      ),
-                      _buildInfoPill(
-                        label: "Distance",
-                        value: "15 Mile",
-                        backgroundColor: const Color(0xFFFFDDE1),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 20),
-
-                  // Description
-                  const Text(
-                    "Description",
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-                  ),
-                  const SizedBox(height: 6),
-                  const Text(
-                    "From an inky matte dial to brushed jet steel, Nate gives the all-black trend new depth. Use it to dress up your favorite pair of denim and a crisp, white tee. This Nate watch also features a chronograph movement on a stainless steel bracelet.",
-                    style: TextStyle(color: Colors.grey, height: 1.5),
-                  ),
-                  const SizedBox(height: 24),
-
-                  // Redemption Instructions
-                  const Text(
-                    "Redemption Instructions",
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-                  ),
-                  const SizedBox(height: 6),
-                  const BulletList([
-                    "You will receive a unique redemption code.",
-                    "Show the code at the participating store or enter it at checkout online.",
-                    "Offer valid until 12/12/2025.",
-                    "Only one redemption per user."
-                  ]),
-                  const SizedBox(height: 24),
-
-                  // Eligibility Criteria
-                  const Text(
-                    "Eligibility Criteria",
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-                  ),
-                  const SizedBox(height: 6),
-                  const BulletList([
-                    "Must have an active account for at least 7 days.",
-                    "Only available to users with \"Up\" status in the past 24 hours.",
-                    "Limited to the first 100 redemptions."
-                  ]),
-                  const SizedBox(height: 90),
-                ],
-              ),
-            ),
-          ),
-
-          // Bottom Buttons
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
-            child: Row(
-              children: [
-                SizedBox(
-                  width: MediaQuery.of(context).size.width * 0.3,
-                  child: OutlinedButton(
-                    onPressed: () {},
-                    style: OutlinedButton.styleFrom(
-                      side: BorderSide(color: Colors.grey.shade400),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    child: const Text("Report", style: TextStyle(color: Colors.black)),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                SizedBox(
-                  width: MediaQuery.of(context).size.width * 0.55, // 30% of screen width
-                  child: ElevatedButton(
-                    onPressed: () {},
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: ColorHelper.blue,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    child: const Text("Redeem Now", style: TextStyle(color: Colors.white)),
-                  ),
-                ),
-              ],
-            ),
-          )
-
-        ],
-      ),
-    );
-  }*/
   @override
   Widget build(BuildContext context) {
     final Map<String, dynamic> item = Get.arguments;
@@ -250,13 +58,13 @@ class _ItemDetailViewState extends State<ItemDetailView> {
                         ),
                         child: imageUrl != null
                             ? ClipRRect(
-                          borderRadius: BorderRadius.circular(8),
-                          child: Image.network(
-                            imageUrl,
-                            fit: BoxFit.cover,
-                            width: double.infinity,
-                          ),
-                        )
+                                borderRadius: BorderRadius.circular(8),
+                                child: Image.network(
+                                  imageUrl,
+                                  fit: BoxFit.cover,
+                                  width: double.infinity,
+                                ),
+                              )
                             : const Center(child: Text('No image')),
                       ),
                       Positioned(
@@ -374,28 +182,36 @@ class _ItemDetailViewState extends State<ItemDetailView> {
                 SizedBox(
                   width: MediaQuery.of(context).size.width * 0.3,
                   child: OutlinedButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      Get.to(() => const ReportView());
+
+                    },
                     style: OutlinedButton.styleFrom(
                       side: BorderSide(color: Colors.grey.shade400),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
                     ),
-                    child: const Text("Report", style: TextStyle(color: Colors.black)),
+                    child: const Text("Report",
+                        style: TextStyle(color: Colors.black)),
                   ),
                 ),
                 const SizedBox(width: 12),
                 SizedBox(
                   width: MediaQuery.of(context).size.width * 0.55,
                   child: ElevatedButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      final int itemId = item['id'];
+                      redeemItem(itemId);
+                    },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: ColorHelper.blue,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
                     ),
-                    child: const Text("Redeem Now", style: TextStyle(color: Colors.white)),
+                    child: const Text("Redeem Now",
+                        style: TextStyle(color: Colors.white)),
                   ),
                 ),
               ],
@@ -405,7 +221,6 @@ class _ItemDetailViewState extends State<ItemDetailView> {
       ),
     );
   }
-
 
   Widget _buildInfoPill({
     required String label,
@@ -443,6 +258,48 @@ class _ItemDetailViewState extends State<ItemDetailView> {
       ),
     );
   }
+
+  Future<void> redeemItem(int itemId) async {
+    final box = GetStorage();
+    final token = box.read('auth_token');
+
+    if (token == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("User not logged in")),
+      );
+      return;
+    }
+
+    try {
+      final response = await http.post(
+        Uri.parse('https://promo.koderspoint.com/api/redeemed-item/store'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: jsonEncode({"item_id": itemId}),
+      );
+
+      if (response.statusCode == 200) {
+        final jsonData = json.decode(response.body);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text(jsonData['message'] ?? 'Redeemed successfully')),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to redeem item')),
+        );
+      }
+    } catch (e) {
+      print("Redeem error: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('An error occurred')),
+      );
+    }
+  }
+
 }
 
 class BulletList extends StatelessWidget {
@@ -460,11 +317,13 @@ class BulletList extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text("• ",
-                        style: TextStyle(fontSize: 14, height: 1.4,color: Colors.grey)),
+                        style: TextStyle(
+                            fontSize: 14, height: 1.4, color: Colors.grey)),
                     Expanded(
                       child: Text(
                         item,
-                        style: const TextStyle(fontSize: 14, height: 1.4,color: Colors.grey),
+                        style: const TextStyle(
+                            fontSize: 14, height: 1.4, color: Colors.grey),
                       ),
                     )
                   ],

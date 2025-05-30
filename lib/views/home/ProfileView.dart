@@ -222,14 +222,13 @@ class _ProfileViewState extends State<ProfileView> {
                       controller: idController,
                       bottomSpacing: 11),
 
-                  // Phone number (prefix icon example)
                   CustomTextField(
                     labelText: '',
                     hintText: 'Phone number ',
                     controller: phoneController,
                     bottomSpacing: 11,
-                    prefixIcon: const Text("+1",
-                        style: TextStyle(fontWeight: FontWeight.bold)),
+                    // prefixIcon: const Text("+1",
+                    //     style: TextStyle(fontWeight: FontWeight.bold)),
                   ),
 
                   // Email

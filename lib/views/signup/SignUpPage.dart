@@ -115,8 +115,8 @@ class _SignUpPageState extends State<SignUpPage> {
                 suffixIcon: IconButton(
                   icon: Image.asset(
                     _obscureText
-                        ? 'assets/images/eye.png' // Your closed eye icon
-                        : 'assets/images/eye.png', // Your open eye icon
+                        ? 'assets/images/eye_on.png'
+                        : 'assets/images/eye_off.png',
                     width: 24, // Customize size if needed
                     height: 24, // Customize size if needed
                   ),

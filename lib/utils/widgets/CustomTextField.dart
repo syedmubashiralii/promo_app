@@ -10,6 +10,7 @@ class CustomTextField extends StatelessWidget {
   final Widget? prefixIcon;
   final void Function(String)? onChanged;
   final double bottomSpacing;
+  final bool enabled;
 
   const CustomTextField({
     Key? key,
@@ -22,6 +23,7 @@ class CustomTextField extends StatelessWidget {
     this.suffixIcon,
     this.prefixIcon,
     this.bottomSpacing = 8,
+    this.enabled = true,
   }) : super(key: key);
 
   @override
@@ -48,6 +50,7 @@ class CustomTextField extends StatelessWidget {
           onChanged: onChanged,
           obscureText: obscureText,
           keyboardType: keyboardType,
+          enabled: enabled,
           style: const TextStyle(fontSize: 13, color: Colors.black),
           decoration: InputDecoration(
             hintStyle: const TextStyle(fontSize: 13, color: Colors.grey),
