@@ -92,41 +92,6 @@ class _ProfileViewState extends State<ProfileView> {
                 children: [
                   Column(
                     children: [
-/*
-                      Stack(
-                        alignment: Alignment.bottomRight,
-                        children: [
-                          GestureDetector(
-                            onTap: _pickImage,
-                            child: CircleAvatar(
-                              radius: 40,
-                              backgroundImage: _imageFile != null
-                                  ? FileImage(_imageFile!)
-                                  : AssetImage("assets/images/user.png")
-                                      as ImageProvider,
-                            ),
-                          ),
-                          Positioned(
-                            top: 45,
-                            left: 45,
-                            child: Container(
-                              child: IconButton(
-                                icon: Image.asset(
-                                  'assets/images/edit.png',
-                                  width: 22,
-                                  height: 22,
-                                ),
-                                onPressed: () {
-                                  setState(() {
-                                    isEditMode = !isEditMode;
-                                  });
-                                },
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-*/
                       const SizedBox(height: 10),
                       Text(
                         profileName,
@@ -242,28 +207,6 @@ class _ProfileViewState extends State<ProfileView> {
 
                   const SizedBox(height: 20),
 
-                  // Logout Button
-                  /*  SizedBox(
-              width: double.infinity,
-              height: 48,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                onPressed: () async {
-                  box.remove('auth_token');
-                  Get.offAllNamed(Routes.LOGIN);
-                },
-                child: const Text(
-                  "Log Out",
-                  style: TextStyle(
-                      color: Colors.white, fontWeight: FontWeight.bold),
-                ),
-              ),
-            )*/
                   SizedBox(
                     width: double.infinity,
                     height: 48,
@@ -368,6 +311,8 @@ class _ProfileViewState extends State<ProfileView> {
 
   void fetchProfile() async {
     final token = box.read('auth_token');
+    print("token found $token");
+
     if (token != null && token.toString().isNotEmpty) {
       if (token == null) {
         print("No token found");
@@ -386,8 +331,11 @@ class _ProfileViewState extends State<ProfileView> {
       );
 
       if (response.statusCode == 200) {
+        print("200");
         final responseData = json.decode(response.body);
         final user = responseData['data'][0];
+        print("responseData $responseData" );
+        print("user $user" );
 
         setState(() {
           nameController.text = user['name'] ?? '';
@@ -395,12 +343,12 @@ class _ProfileViewState extends State<ProfileView> {
           idController.text = user['id'].toString();
           phoneController.text = user['phone_number'] ?? '';
           emailController.text = user['email'] ?? '';
-          selectedAffiliationIndex = user['affiliation_id'];
+          selectedAffiliationIndex = int.tryParse(user['affiliation_id'].toString());
           if (selectedAffiliationIndex != null &&
               selectedAffiliationIndex! < allAffiliations.length) {
-            selectedAffiliationName =
-                allAffiliations[selectedAffiliationIndex!];
+            selectedAffiliationName = allAffiliations[selectedAffiliationIndex!];
           }
+
 
           profileName = user['name'] ?? '';
           profileEmail = user['email'] ?? '';
