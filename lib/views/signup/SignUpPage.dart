@@ -26,8 +26,7 @@ class _SignUpPageState extends State<SignUpPage> {
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
-  String selectedAffiliationName = "Select Status";
-  int? selectedAffiliationIndex;
+  Set<int> selectedAffiliationIndexes = {};
 
   List<String> selectedAffiliations = [];
   List<String> allAffiliations = [
@@ -130,19 +129,38 @@ class _SignUpPageState extends State<SignUpPage> {
               const SizedBox(height: 15),
               ElevatedButton(
                 onPressed: _isLoading ? null :  () async {
-                  if(selectedAffiliationIndex==null){
-                    Get.snackbar("Error", "Please Select Affliation Status");
+                  if (selectedAffiliationIndexes.isEmpty) {
+                    Get.snackbar("Error", "Please select at least one affiliation");
                     return;
                   }
+                  if (_emailController.text.isEmpty) {
+                    Get.snackbar("Error", "Email is required",
+                        backgroundColor: Colors.red, colorText: Colors.white);
+                    return;
+                  }
+
+                  if (_zipController.text.isEmpty) {
+                    Get.snackbar("Error", "Zip Code is required",
+                        backgroundColor: Colors.red, colorText: Colors.white);
+                    return;
+                  }
+
+                  if (_passwordController.text.isEmpty) {
+                    Get.snackbar("Error", "Password is required",
+                        backgroundColor: Colors.red, colorText: Colors.white);
+                    return;
+                  }
+
                   await registerUser(
                     name: _fullNameController.text,
                     email: _emailController.text,
                     location: _zipController.text,
                     dob: _dobController.text,
                     password: _passwordController.text,
-                    affiliationId: selectedAffiliationIndex,
+                    affiliationIds: selectedAffiliationIndexes.toList(),
                     phoneNumber: _phoneController.text,
                   );
+
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: ColorHelper.blue,
@@ -232,7 +250,7 @@ class _SignUpPageState extends State<SignUpPage> {
         ),
         const SizedBox(height: 5),
         GestureDetector(
-            onTap: () => _showSingleSelectDialog(context),
+            onTap: () => _showMultiSelectDialog(context),
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
             decoration: BoxDecoration(
@@ -245,13 +263,13 @@ class _SignUpPageState extends State<SignUpPage> {
               children: [
                 Expanded(
                   child: Text(
-                    selectedAffiliationName,
+                    selectedAffiliations.isEmpty ? "Select Status" : selectedAffiliations.join(", "),
                     style: const TextStyle(fontSize: 14),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
                 GestureDetector(
-                
+
                   child: Image.asset(
                     'assets/images/drop.png',
                     width: 15,
@@ -267,72 +285,93 @@ class _SignUpPageState extends State<SignUpPage> {
     );
   }
 
-  void _showSingleSelectDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (_) {
-        return Dialog(
-          shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(15)),
-          backgroundColor: Colors.white,
-          child: Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(10),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Padding(
-                  padding: EdgeInsets.only(left: 10, top: 10),
-                  child: Text(
-                    "Select Affiliation",
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 15,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ),
-                ...allAffiliations
-                    .asMap()
-                    .entries
-                    .map((entry) {
-                  int index = entry.key;
-                  String item = entry.value;
-                  bool isSelected = selectedAffiliationIndex == index;
 
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 0),
-                    child: RadioListTile<int>(
-                      value: index,
-                      groupValue: selectedAffiliationIndex,
-                      title: Text(
-                        item,
+  Future<void> _showMultiSelectDialog(BuildContext context) async {
+    // Make a copy of current selection to pass to dialog
+    final selected = Set<int>.from(selectedAffiliationIndexes);
+    final selectedNames = List<String>.from(selectedAffiliations);
+
+    final result = await showDialog<Set<int>>(
+      context: context,
+      barrierDismissible: true,  // Allow dismiss on tapping outside
+      builder: (_) {
+        return StatefulBuilder(
+          builder: (context, setStateDialog) {
+            return Dialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(15),
+              ),
+              backgroundColor: Colors.white,
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(10),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Padding(
+                      padding: EdgeInsets.only(left: 10, top: 10),
+                      child: Text(
+                        "Select Affiliation",
                         style: TextStyle(
-                          color: isSelected ? Colors.black : Colors.grey,
-                          fontWeight: FontWeight.w500,
-                          fontSize: 15,
-                          overflow: TextOverflow.ellipsis,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
                         ),
                       ),
-                      activeColor: const Color(0xFF30B0C7),
-                      onChanged: (int? value) {
-                        setState(() {
-                          selectedAffiliationIndex = value;
-                          selectedAffiliationName = allAffiliations[value!];
-                        });
-                        Navigator.pop(context);
-                      },
-
                     ),
-                  );
-                }).toList(),
-              ],
-            ),
-          ),
+                    const SizedBox(height: 10),
+                    ...allAffiliations.asMap().entries.map((entry) {
+                      int index = entry.key;
+                      String item = entry.value;
+                      bool isSelected = selected.contains(index);
+
+                      return CheckboxListTile(
+                        title: Text(
+                          item,
+                          style: TextStyle(
+                            color: isSelected ? Colors.black : Colors.grey,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        value: isSelected,
+                        dense: true,
+                        contentPadding: EdgeInsets.zero,
+                        controlAffinity: ListTileControlAffinity.leading,
+                        activeColor: const Color(0xFF30B0C7),
+                        checkColor: Colors.white,
+                        onChanged: (bool? checked) {
+                          setStateDialog(() {
+                            if (checked == true) {
+                              selected.add(index);
+                            } else {
+                              selected.remove(index);
+                            }
+                          });
+                        },
+                      );
+                    }).toList(),
+                  ],
+                ),
+              ),
+            );
+          },
         );
       },
     );
+
+    // Dialog dismissed: update parent state if result not null
+    if (result != null) {
+      setState(() {
+        selectedAffiliationIndexes = result;
+        selectedAffiliations = selectedAffiliationIndexes.map((i) => allAffiliations[i]).toList();
+      });
+    } else {
+      // Dialog dismissed without explicit return, still update with temp selection
+      setState(() {
+        selectedAffiliationIndexes = selected;
+        selectedAffiliations = selectedAffiliationIndexes.map((i) => allAffiliations[i]).toList();
+      });
+    }
   }
 
   Future<void> registerUser({
@@ -341,23 +380,26 @@ class _SignUpPageState extends State<SignUpPage> {
     required String location,
     required String dob,
     required String password,
-    required int? affiliationId,
+    required List<int> affiliationIds,
     required String phoneNumber,
   }) async {
-    if (selectedAffiliationIndex == null) {
+    if (affiliationIds.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select your affiliation')),
+        const SnackBar(content: Text('Please select at least one affiliation')),
+      );
+      return;
+    }
+    if (phoneNumber.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter phone number')),
       );
       return;
     }
 
-    setState(() {
-      _isLoading = true;
-    });
+    setState(() => _isLoading = true);
 
     try {
       final url = Uri.parse('https://promo.koderspoint.com/api/register');
-
       final response = await http.post(
         url,
         headers: {'Content-Type': 'application/json'},
@@ -367,40 +409,24 @@ class _SignUpPageState extends State<SignUpPage> {
           "location": location,
           "dob": dob,
           "password": password,
-          "affiliation_id": affiliationId,
+          "affiliation_id": affiliationIds,
           "phone_number": phoneNumber,
         }),
       );
 
-      setState(() {
-        _isLoading = false;
-      });
+      setState(() => _isLoading = false);
 
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        if (data['success']) {
-          print("✅ User created successfully");
-          print("Token: ${data['data']['token']}");
-
-          Get.offAllNamed(Routes.LOGIN);
-          Get.snackbar("Success", "SignUp successful",
-              backgroundColor: Colors.green,
-              colorText: Colors.white);
-        } else {
-          print("❌ Registration failed: ${data['message']}");
-          Get.snackbar("Error", data['message'],
-              backgroundColor: Colors.red, colorText: Colors.white);
-        }
+      final data = jsonDecode(response.body);
+      if (response.statusCode == 200 && data['success'] == true) {
+        Get.offAllNamed(Routes.LOGIN);
+        Get.snackbar("Success", "SignUp successful",
+            backgroundColor: Colors.green, colorText: Colors.white);
       } else {
-        print("❌ HTTP Error: ${response.statusCode}");
-        Get.snackbar("Error", "Server error (${response.statusCode})",
+        Get.snackbar("Error", data['message'] ?? 'Registration failed',
             backgroundColor: Colors.red, colorText: Colors.white);
       }
     } catch (e) {
-      setState(() {
-        _isLoading = false;
-      });
-      print("❌ Exception: $e");
+      setState(() => _isLoading = false);
       Get.snackbar("Error", "Something went wrong!",
           backgroundColor: Colors.red, colorText: Colors.white);
     }

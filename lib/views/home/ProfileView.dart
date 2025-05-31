@@ -34,8 +34,12 @@ class _ProfileViewState extends State<ProfileView> {
   String profileName = "";
   String profileEmail = "";
 
-  String selectedAffiliationName = "Select Status";
-  int? selectedAffiliationIndex;
+  String get selectedAffiliationName {
+    if (selectedAffiliationIndexes.isEmpty) return "Select Status";
+    return selectedAffiliationIndexes.map((i) => allAffiliations[i]).join(", ");
+  }
+
+  Set<int> selectedAffiliationIndexes = {};
   List<String> selectedAffiliations = [];
   List<String> allAffiliations = [
     "Student",
@@ -111,7 +115,8 @@ class _ProfileViewState extends State<ProfileView> {
                     children: [
                       const Text(
                         "Personal Information",
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                        style: TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.w600),
                       ),
                       IconButton(
                         icon: Image.asset(
@@ -127,7 +132,6 @@ class _ProfileViewState extends State<ProfileView> {
                       ),
                     ],
                   ),
-
 
                   const SizedBox(height: 10),
                   CustomTextField(
@@ -149,14 +153,14 @@ class _ProfileViewState extends State<ProfileView> {
                   ),
 
                   InkWell(
-                    onTap: () => _showSingleSelectDialog(context),
+                    onTap: () => _showMultiSelectDialog(context),
                     child: Container(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 12, vertical: 14),
                       decoration: BoxDecoration(
                         color: const Color(0xFFFAFAFA),
-                        border:
-                            Border.all(color: const Color(0xFFE1E1E1), width: 1),
+                        border: Border.all(
+                            color: const Color(0xFFE1E1E1), width: 1),
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: Row(
@@ -170,7 +174,6 @@ class _ProfileViewState extends State<ProfileView> {
                             ),
                           ),
                           GestureDetector(
-                            
                             child: Image.asset(
                               'assets/images/drop.png',
                               width: 15,
@@ -248,68 +251,94 @@ class _ProfileViewState extends State<ProfileView> {
     );
   }
 
-  void _showSingleSelectDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (_) {
-        return Dialog(
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-          backgroundColor: Colors.white,
-          child: Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(10),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Padding(
-                  padding: EdgeInsets.only(left: 10, top: 10),
-                  child: Text(
-                    "Select Affiliation",
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 15,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ),
-                ...allAffiliations.asMap().entries.map((entry) {
-                  int index = entry.key;
-                  String item = entry.value;
-                  bool isSelected = selectedAffiliationIndex == index;
+  Future<void> _showMultiSelectDialog(BuildContext context) async {
+    // Make a copy of current selection to pass to dialog
+    final selected = Set<int>.from(selectedAffiliationIndexes);
+    final selectedNames = List<String>.from(selectedAffiliations);
 
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 0),
-                    child: RadioListTile<int>(
-                      value: index,
-                      groupValue: selectedAffiliationIndex,
-                      title: Text(
-                        item,
+    final result = await showDialog<Set<int>>(
+      context: context,
+      barrierDismissible: true, // Allow dismiss on tapping outside
+      builder: (_) {
+        return StatefulBuilder(
+          builder: (context, setStateDialog) {
+            return Dialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(15),
+              ),
+              backgroundColor: Colors.white,
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(10),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Padding(
+                      padding: EdgeInsets.only(left: 10, top: 10),
+                      child: Text(
+                        "Select Affiliation",
                         style: TextStyle(
-                          color: isSelected ? Colors.black : Colors.grey,
-                          fontWeight: FontWeight.w500,
-                          fontSize: 15,
-                          overflow: TextOverflow.ellipsis,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
                         ),
                       ),
-                      activeColor: const Color(0xFF30B0C7),
-                      onChanged: (int? value) {
-                        setState(() {
-                          selectedAffiliationIndex = value;
-                          selectedAffiliationName = allAffiliations[value!];
-                        });
-                        Navigator.pop(context);
-                      },
                     ),
-                  );
-                }).toList(),
-              ],
-            ),
-          ),
+                    const SizedBox(height: 10),
+                    ...allAffiliations.asMap().entries.map((entry) {
+                      int index = entry.key;
+                      String item = entry.value;
+                      bool isSelected = selected.contains(index);
+
+                      return CheckboxListTile(
+                        title: Text(
+                          item,
+                          style: TextStyle(
+                            color: isSelected ? Colors.black : Colors.grey,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        value: isSelected,
+                        dense: true,
+                        contentPadding: EdgeInsets.zero,
+                        controlAffinity: ListTileControlAffinity.leading,
+                        activeColor: const Color(0xFF30B0C7),
+                        checkColor: Colors.white,
+                        onChanged: (bool? checked) {
+                          setStateDialog(() {
+                            if (checked == true) {
+                              selected.add(index);
+                            } else {
+                              selected.remove(index);
+                            }
+                          });
+                        },
+                      );
+                    }).toList(),
+                  ],
+                ),
+              ),
+            );
+          },
         );
       },
     );
+
+    // Dialog dismissed: update parent state if result not null
+    if (result != null) {
+      setState(() {
+        selectedAffiliationIndexes = result;
+        selectedAffiliations =
+            selectedAffiliationIndexes.map((i) => allAffiliations[i]).toList();
+      });
+    } else {
+      // Dialog dismissed without explicit return, still update with temp selection
+      setState(() {
+        selectedAffiliationIndexes = selected;
+        selectedAffiliations =
+            selectedAffiliationIndexes.map((i) => allAffiliations[i]).toList();
+      });
+    }
   }
 
   void fetchProfile() async {
@@ -337,8 +366,8 @@ class _ProfileViewState extends State<ProfileView> {
         print("200");
         final responseData = json.decode(response.body);
         final user = responseData['data'][0];
-        print("responseData $responseData" );
-        print("user $user" );
+        print("responseData $responseData");
+        print("user $user");
 
         setState(() {
           nameController.text = user['name'] ?? '';
@@ -346,11 +375,14 @@ class _ProfileViewState extends State<ProfileView> {
           idController.text = user['id'].toString();
           phoneController.text = user['phone_number'] ?? '';
           emailController.text = user['email'] ?? '';
-          selectedAffiliationIndex = int.tryParse(user['affiliation_id'].toString());
-          if (selectedAffiliationIndex != null &&
-              selectedAffiliationIndex! < allAffiliations.length) {
-            selectedAffiliationName = allAffiliations[selectedAffiliationIndex!];
-          }
+          List<dynamic> affIds = user['affiliation_id'] ?? [];
+          selectedAffiliationIndexes = affIds
+              .whereType<int>()
+              .where((i) => i >= 0 && i < allAffiliations.length)
+              .toSet();
+
+          selectedAffiliations =
+              selectedAffiliationIndexes.map((i) => allAffiliations[i]).toList();
 
 
           profileName = user['name'] ?? '';
@@ -369,47 +401,35 @@ class _ProfileViewState extends State<ProfileView> {
 
   Future<void> updateProfile() async {
     final token = box.read('auth_token');
-    final uri =
-        Uri.parse('https://promo.koderspoint.com/api/user-profile/update');
+    final uri = Uri.parse('https://promo.koderspoint.com/api/user-profile/update');
 
-    var request = http.MultipartRequest('POST', uri);
-    request.headers['Authorization'] = 'Bearer $token';
-    request.headers['Accept'] = 'application/json';
-
-    request.fields['name'] = nameController.text;
-    // request.fields['email'] = emailController.text;
-    request.fields['location'] = dobController.text;
-    request.fields['dob'] = dobController.text;
-    request.fields['affiliation_id'] =
-        selectedAffiliationIndex?.toString() ?? '';
-    request.fields['phone_number'] = phoneController.text;
-/*
-    if (_imageFile != null) {
-      request.files
-          .add(await http.MultipartFile.fromPath('image', _imageFile!.path));
-    }*/
-
-    final response = await request.send();
+    final response = await http.post(
+      uri,
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: jsonEncode({
+        "name": nameController.text,
+        "location": dobController.text,
+        "dob": dobController.text,
+        "affiliation_id": selectedAffiliationIndexes.toList(), // ✅ REAL LIST
+        "phone_number": phoneController.text,
+      }),
+    );
 
     if (response.statusCode == 200) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Profile updated successfully!'),
-          backgroundColor: Colors.green,
-        ),
+        const SnackBar(content: Text('Profile updated successfully!')),
       );
-
       setState(() {
-        isEditMode = false; // Exit edit mode
+        isEditMode = false;
       });
-
-      fetchProfile(); // Reload profile data
+      fetchProfile();
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Failed to update profile'),
-          backgroundColor: Colors.red,
-        ),
+        const SnackBar(content: Text('Failed to update profile')),
       );
     }
   }

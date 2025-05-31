@@ -30,8 +30,9 @@ class _FavouriteViewState extends State<FavouriteView> {
 
     final controller = Get.find<HomeController>();
     controller.favRefreshCallback = () {
-      fetchFavoriteItems();
+      refreshFavoriteItemsIfChanged();
     };
+
   }
 
   @override
@@ -65,6 +66,7 @@ class _FavouriteViewState extends State<FavouriteView> {
                             item['image'].toString().startsWith('http');
 
                         return Container(
+                          key: ValueKey(item['favId']),
                           decoration: BoxDecoration(
                             color: ColorHelper.textFieldBGColor,
                             border: Border.all(
@@ -112,13 +114,14 @@ class _FavouriteViewState extends State<FavouriteView> {
                               overflow: TextOverflow.ellipsis,
                             ),
                             trailing: GestureDetector(
-                              onTap: () {
+                             /* onTap: () {
                                 setState(() {
-                                  // favoriteItems.removeAt(index);
                                   final favId = favoriteItems[index]['favId'];
                                   deleteFavoriteItem(favId, index);
                                 });
-                              },
+                              },*/
+                              onTap: () => deleteFavoriteItem(item['favId'], index),
+
                               child: Container(
                                 padding: const EdgeInsets.all(8),
                                 decoration: BoxDecoration(
@@ -158,9 +161,12 @@ class _FavouriteViewState extends State<FavouriteView> {
   Future<void> deleteFavoriteItem(int favId, int index) async {
     final success = await apiService.deleteFavoriteItem(favId);
     if (success) {
-      setState(() {
-        favoriteItems.removeAt(index);
-      });
+      // setState(() {
+      //   favoriteItems.removeAt(index);
+      // });
+      favoriteItems.removeAt(index);
+      setState(() {});
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Favorite item deleted')),
       );
@@ -168,6 +174,25 @@ class _FavouriteViewState extends State<FavouriteView> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Failed to delete favorite item')),
       );
+    }
+  }
+
+  void refreshFavoriteItemsIfChanged() async {
+    try {
+      final newItems = await apiService.fetchFavoriteItems();
+
+      final newUniqueItems = newItems.where((newItem) {
+        return !favoriteItems.any((existingItem) => existingItem['favId'] == newItem['favId']);
+      }).toList();
+
+      if (newUniqueItems.isNotEmpty) {
+        setState(() {
+          favoriteItems.insertAll(0, newUniqueItems);
+        });
+      }
+    } catch (_) {
+      // Optional: show an error
+      debugPrint('Failed to refresh new favorites');
     }
   }
 

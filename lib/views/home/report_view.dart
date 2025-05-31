@@ -73,9 +73,14 @@ class _ReportViewState extends State<ReportView> {
       backgroundColor: ColorHelper.white,
       appBar: AppBar(
         leading: const BackButton(color: Colors.black),
-        title: const Text("Report", style: TextStyle(color: Colors.black)),
         backgroundColor: Colors.white,
         elevation: 0,
+        title: const Text(
+          'Report',
+          style: TextStyle(
+              color: Colors.black, fontWeight: FontWeight.w500, fontSize: 18),
+        ),
+        centerTitle: true,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),

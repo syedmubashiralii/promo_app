@@ -25,6 +25,7 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
 
   final controller = Get.put(HomeController());
   final box = GetStorage();
+  bool hasFetchedItems = false;
 
   List<String> categories = [];
   String selectedCategory = '';
@@ -56,24 +57,28 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
     WidgetsBinding.instance.addObserver(this);
 
     fetchCategories();
-    fetchItems();
-
-    controller.homeRefreshCallback = () {
+    if (!hasFetchedItems) {
       fetchItems();
+      hasFetchedItems = true;
+    }
+    controller.homeRefreshCallback = () {
+      updateFavoriteStatusOnly();
+
+
     };
+  }
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      print("App resumed - Updating favorite status");
+      updateFavoriteStatusOnly();
+    }
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) {
-      fetchItems(); // Refresh favorites on resume
-    }
   }
 
   @override
@@ -532,6 +537,34 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
   }
 
   void toggleFavorite(int index) async {
+    final item = items[index];
+    final itemId = item['id'];
+
+    // Prevent adding again if already marked favorite
+    if (favoriteStatus[index]) {
+      showSnackbar("Item is already added in favorites");
+      return;
+    }
+    final success = await apiService.storeFavorite(itemId);
+
+    if (success) {
+      setState(() {
+        favoriteStatus[index] = true;
+        showSnackbar("Add in favorites");
+
+      });
+
+      final controller = Get.find<HomeController>();
+      if (controller.favRefreshCallback != null) {
+        controller.favRefreshCallback!();
+      }
+    } else {
+      showSnackbar("Failed to update favorite");
+    }
+  }
+
+  /*
+  void toggleFavorite(int index) async {
     final itemId = items[index]['id'];
     final success = await apiService.storeFavorite(itemId);
 
@@ -543,6 +576,28 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
       showSnackbar("Failed to update favorite");
     }
   }
+*/
+  Future<void> updateFavoriteStatusOnly() async {
+    try {
+      final favData = await apiService.fetchFavoriteList();
+      final newFavoritedIds = favData
+          .map<int>((fav) => int.tryParse(fav['item_id'].toString()) ?? -1)
+          .where((id) => id != -1)
+          .toSet();
+
+      print("New favorite IDs: $newFavoritedIds");
+
+      setState(() {
+        favoritedItemIds = newFavoritedIds;
+        favoriteStatus = items
+            .map<bool>((item) => favoritedItemIds.contains(item['id']))
+            .toList();
+      });
+    } catch (e) {
+      print("Error updating favorite status: $e");
+    }
+  }
+
 
   void showSnackbar(String message) {
     ScaffoldMessenger.of(context)

@@ -1,9 +1,10 @@
 import 'dart:convert';
 
+import 'package:carousel_slider/carousel_slider.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_ui/utils/color_helper.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:http/http.dart' as http;
 
@@ -17,11 +18,32 @@ class ItemDetailView extends StatefulWidget {
 }
 
 class _ItemDetailViewState extends State<ItemDetailView> {
-  final Map<String, dynamic> item = Get.arguments;
+  late final Map<String, dynamic> item;
+  Set<int> redeemedItemIds = {};
+  int _currentImageIndex = 0;
+
+
+  @override
+  void initState() {
+    super.initState();
+
+    final args = Get.arguments;
+    if (args is Map<String, dynamic>) {
+      item = args;
+    } else {
+      // Handle the case where no valid arguments are passed
+      item = {};
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No item data provided.')),
+        );
+        Navigator.pop(context);
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    final Map<String, dynamic> item = Get.arguments;
     final imageUrl = item['media'] != null && item['media'].isNotEmpty
         ? item['media'][0]['original_url']
         : null;
@@ -49,48 +71,10 @@ class _ItemDetailViewState extends State<ItemDetailView> {
                   // Product Image
                   Stack(
                     children: [
-                      Container(
-                        height: 170,
-                        width: double.infinity,
-                        decoration: BoxDecoration(
-                          border: Border.all(color: Colors.grey.shade300),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: imageUrl != null
-                            ? ClipRRect(
-                                borderRadius: BorderRadius.circular(8),
-                                child: Image.network(
-                                  imageUrl,
-                                  fit: BoxFit.cover,
-                                  width: double.infinity,
-                                ),
-                              )
-                            : const Center(child: Text('No image')),
-                      ),
-                      Positioned(
-                        top: 1,
-                        right: 1,
-                        child: IconButton(
-                          icon: const Icon(Icons.favorite, color: Colors.red),
-                          onPressed: () {},
-                        ),
-                      ),
+                      _buildImageSlider()
                     ],
                   ),
                   const SizedBox(height: 8),
-                  const Center(
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.circle, size: 8, color: Color(0xffECECEC)),
-                        SizedBox(width: 4),
-                        Icon(Icons.circle, size: 8, color: ColorHelper.blue),
-                        SizedBox(width: 4),
-                        Icon(Icons.circle, size: 8, color: Color(0xffECECEC)),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 16),
 
                   // Title and Price
                   Row(
@@ -184,7 +168,6 @@ class _ItemDetailViewState extends State<ItemDetailView> {
                   child: OutlinedButton(
                     onPressed: () {
                       Get.to(() => const ReportView());
-
                     },
                     style: OutlinedButton.styleFrom(
                       side: BorderSide(color: Colors.grey.shade400),
@@ -202,7 +185,7 @@ class _ItemDetailViewState extends State<ItemDetailView> {
                   child: ElevatedButton(
                     onPressed: () {
                       final int itemId = item['id'];
-                      redeemItem(itemId);
+                      mStoreRedeemItem(itemId);
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: ColorHelper.blue,
@@ -219,6 +202,77 @@ class _ItemDetailViewState extends State<ItemDetailView> {
           )
         ],
       ),
+    );
+  }
+
+  Widget _buildImageSlider() {
+    final List<dynamic> mediaList = item['media'] ?? [];
+
+    if (mediaList.isEmpty) {
+      return Container(
+        height: 170,
+        width: double.infinity,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.grey.shade300),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: const Text(
+          'No image',
+          style: TextStyle(color: Colors.grey, fontSize: 16),
+        ),
+      );
+    }
+
+    return Column(
+      children: [
+        CarouselSlider.builder(
+          itemCount: mediaList.length,
+          itemBuilder: (context, index, realIndex) {
+            final imageUrl = mediaList[index]['original_url'];
+            return ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: Image.network(
+                imageUrl,
+                fit: BoxFit.cover,
+                width: double.infinity,
+                errorBuilder: (_, __, ___) => const Center(child: Text('No image')),
+              ),
+            );
+          },
+          options: CarouselOptions(
+            height: 170,
+            viewportFraction: 1,
+            enableInfiniteScroll: mediaList.length > 1,
+            autoPlay: mediaList.length > 1,
+            scrollPhysics: mediaList.length > 1
+                ? null
+                : const NeverScrollableScrollPhysics(),
+            onPageChanged: (index, reason) {
+              setState(() {
+                _currentImageIndex = index;
+              });
+            },
+          ),
+        ),
+        const SizedBox(height: 8),
+
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: List.generate(mediaList.length, (index) {
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 3),
+                child: Icon(
+                  Icons.circle,
+                  size: 8,
+                  color: _currentImageIndex == index
+                      ? ColorHelper.blue
+                      : const Color(0xffECECEC),
+                ),
+              );
+            }),
+          ),
+      ],
     );
   }
 
@@ -259,7 +313,7 @@ class _ItemDetailViewState extends State<ItemDetailView> {
     );
   }
 
-  Future<void> redeemItem(int itemId) async {
+  Future<void> mStoreRedeemItem(int itemId) async {
     final box = GetStorage();
     final token = box.read('auth_token');
 
@@ -269,6 +323,13 @@ class _ItemDetailViewState extends State<ItemDetailView> {
       );
       return;
     }
+
+   /* if (redeemedItemIds.contains(itemId)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Item is already redeemed")),
+      );
+      return;
+    }*/
 
     try {
       final response = await http.post(
@@ -283,20 +344,54 @@ class _ItemDetailViewState extends State<ItemDetailView> {
 
       if (response.statusCode == 200) {
         final jsonData = json.decode(response.body);
+        print('data $jsonData');
+
+        final message = jsonData['message'];
+        final error = jsonData['error'];
+
+        final displayText = error ?? message ?? 'Unknown response';
+
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content: Text(jsonData['message'] ?? 'Redeemed successfully')),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to redeem item')),
+          SnackBar(content: Text(displayText)),
         );
       }
+
     } catch (e) {
       print("Redeem error: $e");
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('An error occurred')),
       );
+    }
+  }
+  Future<void> fetchRedeemedItems() async {
+    final box = GetStorage();
+    final token = box.read('auth_token');
+    if (token == null) return;
+
+    try {
+      final response = await http.get(
+        Uri.parse('https://promo.koderspoint.com/api/redeemed-item'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body)['data'];
+
+        redeemedItemIds = data
+            .where((entry) => entry['items'] != null && entry['items'].isNotEmpty)
+            .map<int>((entry) => entry['items'][0]['id'])
+            .toSet();
+
+
+      } else {
+        print('Failed to fetch redeemed items: ${response.statusCode}');
+
+      }
+    } catch (e) {
+      print("Error fetching redeemed items: $e");
     }
   }
 
