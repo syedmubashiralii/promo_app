@@ -179,8 +179,20 @@ class _LoginPageState extends State<LoginPage> {
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
 
-    if (email.isEmpty || password.isEmpty) {
-      Get.snackbar("Error", "Please enter both email and password",
+    if (email.isEmpty && password.isEmpty) {
+      Get.snackbar("Error", "Please enter email and password",
+          backgroundColor: Colors.red, colorText: Colors.white);
+      return;
+    }
+
+    if (email.isEmpty) {
+      Get.snackbar("Error", "Please enter your email",
+          backgroundColor: Colors.red, colorText: Colors.white);
+      return;
+    }
+
+    if (password.isEmpty) {
+      Get.snackbar("Error", "Please enter your password",
           backgroundColor: Colors.red, colorText: Colors.white);
       return;
     }
@@ -203,30 +215,31 @@ class _LoginPageState extends State<LoginPage> {
         _isLoading = false;
       });
 
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        print("🔁 API Response: $data");
+      final data = jsonDecode(response.body);
+      print("🔁 API Response: $data");
 
+      if (response.statusCode == 200) {
         if (data['success']) {
           final token = data['data']['token'];
           final email = data['data']['email'];
           final location = data['data']['location'];
-          print("Token: $token");
-          print("location: $location");
 
           final box = GetStorage();
           box.write('auth_token', token);
           box.write('user_email', email);
           box.write('user_location', location);
+
           Get.offAllNamed(Routes.BOTTOM_NAV);
-          Get.snackbar("Success", "Login successful",
+
+          Get.snackbar("Success", data['message'] ?? "Login successful",
               backgroundColor: Colors.green, colorText: Colors.white);
         } else {
           Get.snackbar("Error", data['message'] ?? "Login failed",
               backgroundColor: Colors.red, colorText: Colors.white);
         }
       } else {
-        Get.snackbar("Error", "Server Error (${response.statusCode})",
+        final errorMsg = data['error'] ?? data['message'] ?? "Unknown error";
+        Get.snackbar("Error", errorMsg,
             backgroundColor: Colors.red, colorText: Colors.white);
       }
     } catch (e) {
@@ -234,7 +247,7 @@ class _LoginPageState extends State<LoginPage> {
         _isLoading = false;
       });
       print("❌ Exception during login: $e");
-      Get.snackbar("Error", "Something went wrong. Try again later.",
+      Get.snackbar("Error", "Exception during login: $e",
           backgroundColor: Colors.red, colorText: Colors.white);
     }
   }

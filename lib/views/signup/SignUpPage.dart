@@ -389,9 +389,17 @@ class _SignUpPageState extends State<SignUpPage> {
       );
       return;
     }
-    if (phoneNumber.isEmpty) {
+
+    if (email.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter phone number')),
+        const SnackBar(content: Text('Please enter email')),
+      );
+      return;
+    }
+
+    if (password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter password')),
       );
       return;
     }
@@ -415,22 +423,25 @@ class _SignUpPageState extends State<SignUpPage> {
       );
 
       setState(() => _isLoading = false);
-
       final data = jsonDecode(response.body);
+
       if (response.statusCode == 200 && data['success'] == true) {
         Get.offAllNamed(Routes.LOGIN);
-        Get.snackbar("Success", "SignUp successful",
+        Get.snackbar("Success", data['message'] ?? "SignUp successful",
             backgroundColor: Colors.green, colorText: Colors.white);
-      } else {
-        Get.snackbar("Error", data['message'] ?? 'Registration failed',
+      }
+      else {
+        final errorMessage =
+            data['message'] ?? data['error'] ?? 'Registration failed';
+        Get.snackbar("Error", errorMessage,
             backgroundColor: Colors.red, colorText: Colors.white);
       }
     } catch (e) {
       setState(() => _isLoading = false);
-      Get.snackbar("Error", "Something went wrong!",
+      Get.snackbar("Error", "Exception during register: $e",
           backgroundColor: Colors.red, colorText: Colors.white);
+      print("❌ Exception during register: $e");
     }
   }
-
 
 }

@@ -414,7 +414,7 @@ class _ProfileViewState extends State<ProfileView> {
         "name": nameController.text,
         "location": dobController.text,
         "dob": dobController.text,
-        "affiliation_id": selectedAffiliationIndexes.toList(), // ✅ REAL LIST
+        "affiliation_id": selectedAffiliationIndexes.toList(),
         "phone_number": phoneController.text,
       }),
     );
