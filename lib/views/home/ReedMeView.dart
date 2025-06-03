@@ -231,7 +231,7 @@ class _ReedMeViewState extends State<ReedMeView> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(message)),
         );
-        await fetchRedeemedItems(); // refresh the list
+        await fetchRedeemedItems();
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Failed to delete redeemed item')),
