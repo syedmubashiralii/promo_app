@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_ui/utils/color_helper.dart';
 
-import '../../../utils/widgets/CustomTextField.dart';
+import '../../../utils/widgets/custom_text_field.dart';
 
 class SortView extends StatefulWidget {
   const SortView({super.key});

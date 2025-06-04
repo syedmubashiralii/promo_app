@@ -9,7 +9,7 @@ import 'package:image_picker/image_picker.dart';
 
 import '../../routes/app_pages.dart';
 import '../../utils/color_helper.dart';
-import '../../utils/widgets/CustomTextField.dart';
+import '../../utils/widgets/custom_text_field.dart';
 
 class ProfileView extends StatefulWidget {
   const ProfileView({Key? key}) : super(key: key);

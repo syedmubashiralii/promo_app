@@ -8,18 +8,22 @@ class CustomTextField extends StatelessWidget {
   final TextEditingController controller;
   final Widget? suffixIcon;
   final Widget? prefixIcon;
+  final void Function()? onTap;
   final void Function(String)? onChanged;
+  final bool? readOnly;
   final double bottomSpacing;
   final bool enabled;
 
   const CustomTextField({
     Key? key,
     required this.labelText,
+    this.onTap,
     required this.hintText,
     required this.controller,
     this.obscureText = false,
     this.keyboardType = TextInputType.text,
     this.onChanged,
+    this.readOnly=false,
     this.suffixIcon,
     this.prefixIcon,
     this.bottomSpacing = 8,
@@ -46,6 +50,8 @@ class CustomTextField extends StatelessWidget {
           const SizedBox(height: 5),
         ],
         TextField(
+          onTap: onTap,
+          readOnly: readOnly??false,
           controller: controller,
           onChanged: onChanged,
           obscureText: obscureText,

@@ -8,14 +8,14 @@ import 'package:get_storage/get_storage.dart';
 import 'package:http/http.dart' as http;
 
 
-class ReedMeView extends StatefulWidget {
-  const ReedMeView({super.key});
+class RedeemedView extends StatefulWidget {
+  const RedeemedView({super.key});
 
   @override
-  _ReedMeViewState createState() => _ReedMeViewState();
+  _RedeemedViewState createState() => _RedeemedViewState();
 }
 
-class _ReedMeViewState extends State<ReedMeView> {
+class _RedeemedViewState extends State<RedeemedView> {
 
   final box = GetStorage();
 

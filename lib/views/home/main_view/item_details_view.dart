@@ -60,147 +60,149 @@ class _ItemDetailViewState extends State<ItemDetailView> {
         ),
         centerTitle: true,
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Product Image
-                  Stack(
-                    children: [
-                      _buildImageSlider()
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-
-                  // Title and Price
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: Text(
-                          item['title'] ?? 'No Title',
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
+      body: SafeArea(
+        child: Column(
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Product Image
+                    Stack(
+                      children: [
+                        _buildImageSlider()
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+        
+                    // Title and Price
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            item['title'] ?? 'No Title',
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
                         ),
-                      ),
-                      Text(
-                        item['is_free'] == 1 ? 'Free' : "\$${item['price']}",
-                        style: const TextStyle(
-                          fontSize: 17,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black,
+                        Text(
+                          item['is_free'] == 1 ? 'Free' : "\$${item['price']}",
+                          style: const TextStyle(
+                            fontSize: 17,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black,
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      _buildInfoPill(
-                        label: "Location",
-                        value: item['location'] ?? 'N/A',
-                        backgroundColor: const Color(0xFFD4E8FF),
-                      ),
-                      _buildInfoPill(
-                        label: "Status",
-                        value: item['status'] ?? 'N/A',
-                        backgroundColor: const Color(0xFFEBDDF9),
-                      ),
-                      _buildInfoPill(
-                        label: "Affiliation",
-                        value: item['affiliation_id'].toString(),
-                        backgroundColor: const Color(0xFFFFDDE1),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 20),
-
-                  const Text(
-                    "Description",
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    item['description'] ?? '',
-                    style: const TextStyle(color: Colors.grey, height: 1.5),
-                  ),
-
-                  const SizedBox(height: 24),
-                  const Text(
-                    "Redemption Instructions",
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-                  ),
-                  const SizedBox(height: 6),
-                  BulletList([
-                    item['redemption_instruction'] ?? 'Not available',
-                  ]),
-
-                  const SizedBox(height: 24),
-                  const Text(
-                    "Eligibility Criteria",
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-                  ),
-                  const SizedBox(height: 6),
-                  BulletList([
-                    item['eligibility_criteria'] ?? 'Not available',
-                  ]),
-
-                  const SizedBox(height: 90),
-                ],
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+        
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        _buildInfoPill(
+                          label: "Location",
+                          value: item['location'] ?? 'N/A',
+                          backgroundColor: const Color(0xFFD4E8FF),
+                        ),
+                        _buildInfoPill(
+                          label: "Status",
+                          value: item['status'] ?? 'N/A',
+                          backgroundColor: const Color(0xFFEBDDF9),
+                        ),
+                        _buildInfoPill(
+                          label: "Affiliation",
+                          value: item['affiliation_id'].toString(),
+                          backgroundColor: const Color(0xFFFFDDE1),
+                        ),
+                      ],
+                    ),
+        
+                    const SizedBox(height: 20),
+        
+                    const Text(
+                      "Description",
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      item['description'] ?? '',
+                      style: const TextStyle(color: Colors.grey, height: 1.5),
+                    ),
+        
+                    const SizedBox(height: 24),
+                    const Text(
+                      "Redemption Instructions",
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                    ),
+                    const SizedBox(height: 6),
+                    BulletList([
+                      item['redemption_instruction'] ?? 'Not available',
+                    ]),
+        
+                    const SizedBox(height: 24),
+                    const Text(
+                      "Eligibility Criteria",
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                    ),
+                    const SizedBox(height: 6),
+                    BulletList([
+                      item['eligibility_criteria'] ?? 'Not available',
+                    ]),
+        
+                    const SizedBox(height: 90),
+                  ],
+                ),
               ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
-            child: Row(
-              children: [
-                SizedBox(
-                  width: MediaQuery.of(context).size.width * 0.3,
-                  child: OutlinedButton(
-                    onPressed: () {
-                      Get.to(() => const ReportView());
-                    },
-                    style: OutlinedButton.styleFrom(
-                      side: BorderSide(color: Colors.grey.shade400),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+              child: Row(
+                children: [
+                  SizedBox(
+                    width: MediaQuery.of(context).size.width * 0.3,
+                    child: OutlinedButton(
+                      onPressed: () {
+                        Get.to(() => const ReportView());
+                      },
+                      style: OutlinedButton.styleFrom(
+                        side: BorderSide(color: Colors.grey.shade400),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
                       ),
+                      child: const Text("Report",
+                          style: TextStyle(color: Colors.black)),
                     ),
-                    child: const Text("Report",
-                        style: TextStyle(color: Colors.black)),
                   ),
-                ),
-                const SizedBox(width: 12),
-                SizedBox(
-                  width: MediaQuery.of(context).size.width * 0.55,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      final int itemId = item['id'];
-                      mStoreRedeemItem(itemId);
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: ColorHelper.blue,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+                  const SizedBox(width: 12),
+                  SizedBox(
+                    width: MediaQuery.of(context).size.width * 0.55,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        final int itemId = item['id'];
+                        mStoreRedeemItem(itemId);
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: ColorHelper.blue,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
                       ),
+                      child: const Text("Redeem Now",
+                          style: TextStyle(color: Colors.white)),
                     ),
-                    child: const Text("Redeem Now",
-                        style: TextStyle(color: Colors.white)),
                   ),
-                ),
-              ],
-            ),
-          )
-        ],
+                ],
+              ),
+            )
+          ],
+        ),
       ),
     );
   }

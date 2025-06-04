@@ -6,16 +6,16 @@ import 'package:http/http.dart' as http;
 
 import '../../routes/app_pages.dart';
 import '../../utils/color_helper.dart';
-import '../../utils/widgets/CustomTextField.dart';
+import '../../utils/widgets/custom_text_field.dart';
 
-class SignUpPage extends StatefulWidget {
-  const SignUpPage({Key? key}) : super(key: key);
+class SignupView extends StatefulWidget {
+  const SignupView({Key? key}) : super(key: key);
 
   @override
-  _SignUpPageState createState() => _SignUpPageState();
+  _SignupViewState createState() => _SignupViewState();
 }
 
-class _SignUpPageState extends State<SignUpPage> {
+class _SignupViewState extends State<SignupView> {
   bool _obscureText = true;
   bool _isLoading = false;
 
@@ -218,17 +218,22 @@ class _SignUpPageState extends State<SignUpPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: 5),
-        CustomTextField(
-          labelText: "Date of Birth:",
-          hintText: "i.e., 12/12/2002",
-          controller: _dobController,
-          suffixIcon: IconButton(
-            icon: Image.asset(
-              'assets/images/calendar.png',
-              width: 20,
-              height: 20,
+        GestureDetector(
+          
+          child: CustomTextField(
+            onTap: () => _selectDate(context),
+            readOnly: true,
+            labelText: "Date of Birth:",
+            hintText: "i.e., 12/12/2002",
+            controller: _dobController,
+            suffixIcon: IconButton(
+              icon: Image.asset(
+                'assets/images/calendar.png',
+                width: 20,
+                height: 20,
+              ),
+              onPressed: null,
             ),
-            onPressed: () => _selectDate(context),
           ),
         ),
         const SizedBox(height: 15),

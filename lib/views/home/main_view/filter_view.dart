@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_ui/utils/color_helper.dart';
 import 'package:intl/intl.dart';
 
-import '../../../ApiService/api_service.dart';
-import '../../../utils/widgets/CustomTextField.dart';
+import '../../../services/api_service.dart';
+import '../../../utils/widgets/custom_text_field.dart';
 
 class FilterView extends StatefulWidget {
   const FilterView({super.key});

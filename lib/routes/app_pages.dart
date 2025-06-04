@@ -1,13 +1,13 @@
-import 'package:flutter_ui/views/forgot_pass/forgot_password.dart';
+import 'package:flutter_ui/views/auth/forgot_password.dart';
 import 'package:flutter_ui/views/home/main_view/filter_view.dart';
 import 'package:flutter_ui/views/home/main_view/item_details_view.dart';
 import 'package:flutter_ui/views/home/main_view/sort_view.dart';
-import 'package:flutter_ui/views/splash/SplashScreen.dart';
+import 'package:flutter_ui/views/splash/splash_view.dart';
 import 'package:get/get_navigation/src/routes/get_route.dart';
 
 import '../views/home/bottom_nav_view.dart';
-import '../views/login/LoginPage.dart';
-import '../views/signup/SignUpPage.dart';
+import '../views/auth/login_view.dart';
+import '../views/auth/signup_view.dart';
 
 part 'app_routes.dart';
 
@@ -23,11 +23,11 @@ class AppPages {
     ),
     GetPage(
       name: _Paths.LOGIN,
-      page: () => LoginPage(),
+      page: () => LoginView(),
     ),
     GetPage(
       name: _Paths.SIGNUP,
-      page: () => SignUpPage(),
+      page: () => SignupView(),
     ),
     GetPage(
       name: _Paths.BOTTOM_NAV,

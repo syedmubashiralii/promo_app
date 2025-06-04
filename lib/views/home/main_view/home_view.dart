@@ -7,7 +7,7 @@ import 'package:get_storage/get_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 
-import '../../../ApiService/api_service.dart';
+import '../../../services/api_service.dart';
 import '../../../controllers/home_controller.dart';
 import '../../../routes/app_pages.dart';
 import '../../../utils/color_helper.dart';
@@ -340,13 +340,13 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
                               child: imageUrl != null
                                   ? Image.network(
                                 imageUrl,
-                                height: 70,
+                                height: 85,
                                 width: double.infinity,
                                 fit: BoxFit.cover,
                               )
                                   : Image.asset(
                                 'assets/images/no_img.png',
-                                height: 70,
+                                height: 85,
                                 width: double.infinity,
                                 fit: BoxFit.cover,
                               ),
@@ -399,17 +399,17 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
                               description,
                               style: TextStyle(
                                   color: Colors.grey, fontSize: 10),
-                              maxLines: 1,
+                              maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                             ),
                           ],
                         ),
                       ),
-
+Spacer(),
                       // View Details
                       Padding(
                         padding: EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 3),
+                            horizontal: 8, vertical: 6),
                         child: SizedBox(
                           width: double.infinity,
                           height: 28,

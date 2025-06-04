@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:flutter_ui/views/home/FavouriteView.dart';
-import 'package:flutter_ui/views/home/ProfileView.dart';
+import 'package:flutter_ui/views/home/favourite_view.dart';
+import 'package:flutter_ui/views/home/profile_view.dart';
 import 'package:get/get.dart';
 
 import '../../controllers/home_controller.dart';
 import '../../utils/color_helper.dart';
-import 'ReedMeView.dart';
+import 'redeemed_view.dart';
 import 'main_view/home_view.dart';
 
 class BottomNavView extends StatelessWidget {
@@ -24,7 +24,7 @@ class BottomNavView extends StatelessWidget {
                 index: controller.selectedIndex.value,
                 children: const [
                   HomeView(),
-                  ReedMeView(),
+                  RedeemedView(),
                   FavouriteView(),
                   ProfileView()
                 ],

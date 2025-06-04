@@ -5,7 +5,7 @@ import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:http/http.dart' as http;
 
-import '../../ApiService/api_service.dart';
+import '../../services/api_service.dart';
 import '../../controllers/home_controller.dart';
 import '../../utils/color_helper.dart';
 
