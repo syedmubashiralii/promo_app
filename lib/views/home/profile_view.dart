@@ -233,6 +233,10 @@ class _ProfileViewState extends State<ProfileView> {
                           });
                         } else {
                           box.remove('auth_token');
+                          box.remove('cached_user_profile');
+                          box.remove('cached_items');
+                          box.remove('cached_categories');
+                          box.remove('cached_favorites');
                           Get.offAllNamed(Routes.LOGIN);
                         }
                       },
@@ -343,17 +347,21 @@ class _ProfileViewState extends State<ProfileView> {
 
   void fetchProfile() async {
     final token = box.read('auth_token');
-    print("token found $token");
+    final profileKey = 'cached_user_profile';
 
-    if (token != null && token.toString().isNotEmpty) {
-      if (token == null) {
-        print("No token found");
-        setState(() {
-          _isLoading = false;
-        });
-        return;
-      }
+    if (token == null || token.toString().isEmpty) {
+      _isLoading = false;
+      setState(() {});
+      return;
+    }
 
+    final cached = box.read(profileKey);
+    if (cached != null) {
+      final user = json.decode(cached);
+      _loadUserProfile(user);
+    }
+
+    try {
       final response = await http.get(
         Uri.parse('https://promo.koderspoint.com/api/user-profile'),
         headers: {
@@ -363,45 +371,46 @@ class _ProfileViewState extends State<ProfileView> {
       );
 
       if (response.statusCode == 200) {
-        print("200");
         final responseData = json.decode(response.body);
         final user = responseData['data'][0];
-        print("responseData $responseData");
-        print("user $user");
-
-        setState(() {
-          nameController.text = user['name'] ?? '';
-          dobController.text = user['dob'] ?? '';
-          idController.text = user['id'].toString();
-          phoneController.text = user['phone_number'] ?? '';
-          emailController.text = user['email'] ?? '';
-          List<dynamic> affIds = user['affiliation_id'] ?? [];
-          selectedAffiliationIndexes = affIds
-              .whereType<int>()
-              .where((i) => i >= 0 && i < allAffiliations.length)
-              .toSet();
-
-          selectedAffiliations =
-              selectedAffiliationIndexes.map((i) => allAffiliations[i]).toList();
-
-
-          profileName = user['name'] ?? '';
-          profileEmail = user['email'] ?? '';
-
-          _isLoading = false;
-        });
+        box.write(profileKey, json.encode(user));
+        _loadUserProfile(user);
       } else {
         print("Failed to fetch profile: ${response.statusCode}");
-        setState(() {
-          _isLoading = false;
-        });
       }
+    } catch (e) {
+      print("Error fetching profile: $e");
     }
+
+    setState(() {
+      _isLoading = false;
+    });
+  }
+
+  void _loadUserProfile(Map<String, dynamic> user) {
+    nameController.text = user['name'] ?? '';
+    dobController.text = user['dob'] ?? '';
+    idController.text = user['id'].toString();
+    phoneController.text = user['phone_number'] ?? '';
+    emailController.text = user['email'] ?? '';
+
+    List<dynamic> affIds = user['affiliation_id'] ?? [];
+    selectedAffiliationIndexes = affIds
+        .whereType<int>()
+        .where((i) => i >= 0 && i < allAffiliations.length)
+        .toSet();
+
+    selectedAffiliations =
+        selectedAffiliationIndexes.map((i) => allAffiliations[i]).toList();
+
+    profileName = user['name'] ?? '';
+    profileEmail = user['email'] ?? '';
   }
 
   Future<void> updateProfile() async {
     final token = box.read('auth_token');
-    final uri = Uri.parse('https://promo.koderspoint.com/api/user-profile/update');
+    final uri =
+        Uri.parse('https://promo.koderspoint.com/api/user-profile/update');
 
     final response = await http.post(
       uri,

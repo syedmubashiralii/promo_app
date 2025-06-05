@@ -63,10 +63,9 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
     }
     controller.homeRefreshCallback = () {
       updateFavoriteStatusOnly();
-
-
     };
   }
+
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
@@ -167,11 +166,11 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
                       if (result != null) {
                         final selectedDate = result['date'];
                         final selectedStatusList =
-                        result['status'] as List<String>;
+                            result['status'] as List<String>;
                         final selectedMiles = result['miles'];
 
                         int radius = int.tryParse(selectedMiles?.replaceAll(
-                            RegExp(r'[^0-9]'), '')) ??
+                                RegExp(r'[^0-9]'), '')) ??
                             0;
 
                         applySortFilters(
@@ -212,8 +211,8 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
                         final selectedCategory =
                             result['selectedCategory'] ?? 'All';
                         final List<String> selectedAffiliations =
-                        List<String>.from(
-                            result['selectedAffiliations'] ?? []);
+                            List<String>.from(
+                                result['selectedAffiliations'] ?? []);
 
                         setState(() {
                           this.selectedCategory = selectedCategory;
@@ -240,48 +239,48 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
             _isLoadingCategories
                 ? const CircularProgressIndicator()
                 : SizedBox(
-              height: 40,
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                itemCount: categories.length,
-                itemBuilder: (_, index) {
-                  String category = categories[index];
-                  bool isSelected = category == selectedCategory;
+                    height: 40,
+                    child: ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: categories.length,
+                      itemBuilder: (_, index) {
+                        String category = categories[index];
+                        bool isSelected = category == selectedCategory;
 
-                  return Padding(
-                    padding: const EdgeInsets.only(right: 10),
-                    child: ChoiceChip(
-                      label: Text(
-                        category,
-                        style: TextStyle(
-                          color: isSelected
-                              ? Colors.white
-                              : const Color(0xFFB3B3B3),
-                        ),
-                      ),
-                      selected: isSelected,
-                      selectedColor: ColorHelper.blue,
-                      backgroundColor: Colors.white,
-                      side: BorderSide(
-                        color: isSelected
-                            ? ColorHelper.blue
-                            : const Color(0xFFB3B3B3),
-                      ),
-                      onSelected: (_) {
-                        setState(() {
-                          selectedCategory = category;
-                          filterItemsByCategory();
-                        });
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 10),
+                          child: ChoiceChip(
+                            label: Text(
+                              category,
+                              style: TextStyle(
+                                color: isSelected
+                                    ? Colors.white
+                                    : const Color(0xFFB3B3B3),
+                              ),
+                            ),
+                            selected: isSelected,
+                            selectedColor: ColorHelper.blue,
+                            backgroundColor: Colors.white,
+                            side: BorderSide(
+                              color: isSelected
+                                  ? ColorHelper.blue
+                                  : const Color(0xFFB3B3B3),
+                            ),
+                            onSelected: (_) {
+                              setState(() {
+                                selectedCategory = category;
+                                filterItemsByCategory();
+                              });
+                            },
+                            showCheckmark: false,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                        );
                       },
-                      showCheckmark: false,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
                     ),
-                  );
-                },
-              ),
-            ),
+                  ),
 
             const SizedBox(height: 20),
 
@@ -291,155 +290,155 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
             const SizedBox(height: 10),
             isLoading
                 ? const Center(
-              child: CircularProgressIndicator(),
-            )
+                    child: CircularProgressIndicator(),
+                  )
                 : GridView.builder(
-              physics: const NeverScrollableScrollPhysics(),
-              shrinkWrap: true,
-              itemCount: filteredItems.length,
-              gridDelegate:
-              const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                mainAxisSpacing: 10,
-                crossAxisSpacing: 10,
-              ),
-              itemBuilder: (_, index) {
-                final item = filteredItems[index];
-                final mediaList = item['media'] ?? [];
-                final imageUrl = (mediaList.isNotEmpty &&
-                    mediaList[0]['original_url'] != null &&
-                    mediaList[0]['original_url']
-                        .toString()
-                        .isNotEmpty)
-                    ? mediaList[0]['original_url']
-                    : null;
-                final title = item['title'] ?? '';
-                final description = item['description'] ?? '';
-                final price =
-                item['is_free'] == 1 ? 'Free' : '\$${item['price']}';
+                    physics: const NeverScrollableScrollPhysics(),
+                    shrinkWrap: true,
+                    itemCount: filteredItems.length,
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      mainAxisSpacing: 10,
+                      crossAxisSpacing: 10,
+                    ),
+                    itemBuilder: (_, index) {
+                      final item = filteredItems[index];
+                      final mediaList = item['media'] ?? [];
+                      final imageUrl = (mediaList.isNotEmpty &&
+                              mediaList[0]['original_url'] != null &&
+                              mediaList[0]['original_url']
+                                  .toString()
+                                  .isNotEmpty)
+                          ? mediaList[0]['original_url']
+                          : null;
+                      final title = item['title'] ?? '';
+                      final description = item['description'] ?? '';
+                      final price =
+                          item['is_free'] == 1 ? 'Free' : '\$${item['price']}';
 
-                return Container(
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Color(0xFFE1E1E1)),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Image and favorite icon
-                      Stack(
-                        children: [
-                          ClipRRect(
-                            borderRadius: const BorderRadius.only(
-                              topLeft: Radius.circular(10),
-                              topRight: Radius.circular(10),
-                            ),
-                            child: Padding(
-                              padding: EdgeInsets.symmetric(
-                                  horizontal: 8, vertical: 4),
-                              child: imageUrl != null
-                                  ? Image.network(
-                                imageUrl,
-                                height: 85,
-                                width: double.infinity,
-                                fit: BoxFit.cover,
-                              )
-                                  : Image.asset(
-                                'assets/images/no_img.png',
-                                height: 85,
-                                width: double.infinity,
-                                fit: BoxFit.cover,
-                              ),
-                            ),
-                          ),
-                          Positioned(
-                            top: 8,
-                            right: 8,
-                            child: GestureDetector(
-                              onTap: () => toggleFavorite(index),
-                              child: Icon(
-                                favoriteStatus[index]
-                                    ? Icons.favorite
-                                    : Icons.favorite_border,
-                                color: Colors.red,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-
-                      // Title & Description
-                      Padding(
-                        padding: EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 4),
+                      return Container(
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Color(0xFFE1E1E1)),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Row(
+                            // Image and favorite icon
+                            Stack(
                               children: [
-                                Expanded(
-                                  child: Text(
-                                    title,
-                                    style: TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w500),
-                                    overflow: TextOverflow.ellipsis,
+                                ClipRRect(
+                                  borderRadius: const BorderRadius.only(
+                                    topLeft: Radius.circular(10),
+                                    topRight: Radius.circular(10),
+                                  ),
+                                  child: Padding(
+                                    padding: EdgeInsets.symmetric(
+                                        horizontal: 8, vertical: 4),
+                                    child: imageUrl != null
+                                        ? Image.network(
+                                            imageUrl,
+                                            height: 85,
+                                            width: double.infinity,
+                                            fit: BoxFit.cover,
+                                          )
+                                        : Image.asset(
+                                            'assets/images/no_img.png',
+                                            height: 85,
+                                            width: double.infinity,
+                                            fit: BoxFit.cover,
+                                          ),
                                   ),
                                 ),
-                                Text(
-                                  price,
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 11),
+                                Positioned(
+                                  top: 8,
+                                  right: 8,
+                                  child: GestureDetector(
+                                    onTap: () => toggleFavorite(index),
+                                    child: Icon(
+                                      favoriteStatus[index]
+                                          ? Icons.favorite
+                                          : Icons.favorite_border,
+                                      color: Colors.red,
+                                    ),
+                                  ),
                                 ),
                               ],
                             ),
-                            SizedBox(height: 3),
-                            Text(
-                              description,
-                              style: TextStyle(
-                                  color: Colors.grey, fontSize: 10),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
+
+                            // Title & Description
+                            Padding(
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 4),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                          title,
+                                          style: TextStyle(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w500),
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                      Text(
+                                        price,
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 11),
+                                      ),
+                                    ],
+                                  ),
+                                  SizedBox(height: 3),
+                                  Text(
+                                    description,
+                                    style: TextStyle(
+                                        color: Colors.grey, fontSize: 10),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Spacer(),
+                            // View Details
+                            Padding(
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 6),
+                              child: SizedBox(
+                                width: double.infinity,
+                                height: 28,
+                                child: ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: ColorHelper.blue,
+                                    padding: EdgeInsets.zero,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                  ),
+                                  onPressed: () {
+                                    Get.toNamed(Routes.VIEWDETAIL,
+                                        arguments: item);
+                                  },
+                                  child: Text(
+                                    "View Details",
+                                    style: TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.white),
+                                  ),
+                                ),
+                              ),
                             ),
                           ],
                         ),
-                      ),
-Spacer(),
-                      // View Details
-                      Padding(
-                        padding: EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 6),
-                        child: SizedBox(
-                          width: double.infinity,
-                          height: 28,
-                          child: ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: ColorHelper.blue,
-                              padding: EdgeInsets.zero,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                            ),
-                            onPressed: () {
-                              Get.toNamed(Routes.VIEWDETAIL,
-                                  arguments: item);
-                            },
-                            child: Text(
-                              "View Details",
-                              style: TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.white),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              },
-            )
+                      );
+                    },
+                  )
           ],
         ),
       ),
@@ -471,14 +470,16 @@ Spacer(),
 
     try {
       final itemData = await apiService.fetchItems();
-      final favData = await apiService.fetchFavoriteList();
+      apiService.fetchFavoriteList().then((value) {
+        setState(() {
+          favoritedItemIds = value
+              .map<int>((fav) => int.tryParse(fav['item_id'].toString()) ?? -1)
+              .where((id) => id != -1)
+              .toSet();
+        });
+      });
 
       // favoritedItemIds = favData.map<int>((fav) => fav['item_id']).toSet();
-      favoritedItemIds = favData
-          .map<int>((fav) => int.tryParse(fav['item_id'].toString()) ?? -1)
-          .where((id) => id != -1)
-          .toSet();
-
 
       setState(() {
         items = itemData;
@@ -551,7 +552,6 @@ Spacer(),
       setState(() {
         favoriteStatus[index] = true;
         showSnackbar("Add in favorites");
-
       });
 
       final controller = Get.find<HomeController>();
@@ -597,7 +597,6 @@ Spacer(),
       print("Error updating favorite status: $e");
     }
   }
-
 
   void showSnackbar(String message) {
     ScaffoldMessenger.of(context)
@@ -649,7 +648,8 @@ Spacer(),
         continue;
       }
 
-      final itemDate = item['created_at']; // format: "2025-05-16T08:39:53.000000Z"
+      final itemDate =
+          item['created_at']; // format: "2025-05-16T08:39:53.000000Z"
       final itemStatus = item['affiliation_id']?.toString();
 
       bool dateMatch = true;
@@ -688,7 +688,8 @@ Spacer(),
     }
 
     if (missingLocationCount > 0) {
-      showSnackbar("$missingLocationCount item(s) skipped due to missing coordinates.");
+      showSnackbar(
+          "$missingLocationCount item(s) skipped due to missing coordinates.");
     }
     if (outOfRangeCount > 0) {
       showSnackbar("$outOfRangeCount item(s) outside $miles miles.");
@@ -697,14 +698,14 @@ Spacer(),
       showSnackbar("$dateMismatchCount item(s) skipped due to date mismatch.");
     }
     if (statusMismatchCount > 0) {
-      showSnackbar("$statusMismatchCount item(s) skipped due to affiliation status mismatch.");
+      showSnackbar(
+          "$statusMismatchCount item(s) skipped due to affiliation status mismatch.");
     }
 
     setState(() {
       filteredItems = filtered;
     });
   }
-
 
   Future<Map<String, double>?> getLatLngFromZip(String zip) async {
     final url = Uri.parse('http://api.zippopotam.us/us/$zip');
