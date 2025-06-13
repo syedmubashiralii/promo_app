@@ -129,10 +129,10 @@ class _SignupViewState extends State<SignupView> {
               const SizedBox(height: 15),
               ElevatedButton(
                 onPressed: _isLoading ? null :  () async {
-                  if (selectedAffiliationIndexes.isEmpty) {
-                    Get.snackbar("Error", "Please select at least one affiliation");
-                    return;
-                  }
+                  // if (selectedAffiliationIndexes.isEmpty) {
+                  //   Get.snackbar("Error", "Please select at least one affiliation");
+                  //   return;
+                  // }
                   if (_emailController.text.isEmpty) {
                     Get.snackbar("Error", "Email is required",
                         backgroundColor: Colors.red, colorText: Colors.white);
@@ -388,12 +388,12 @@ class _SignupViewState extends State<SignupView> {
     required List<int> affiliationIds,
     required String phoneNumber,
   }) async {
-    if (affiliationIds.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select at least one affiliation')),
-      );
-      return;
-    }
+    // if (affiliationIds.isEmpty) {
+    //   ScaffoldMessenger.of(context).showSnackBar(
+    //     const SnackBar(content: Text('Please select at least one affiliation')),
+    //   );
+    //   return;
+    // }
 
     if (email.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(

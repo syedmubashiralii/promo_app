@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -25,8 +26,8 @@ class _ProfileViewState extends State<ProfileView> {
       TextEditingController(text: "John Smith");
   final TextEditingController dobController =
       TextEditingController(text: "12/12/2002");
-  final TextEditingController idController =
-      TextEditingController(text: "456678");
+  // final TextEditingController idController =
+  //     TextEditingController(text: "456678");
   final TextEditingController phoneController =
       TextEditingController(text: "1223452334");
   final TextEditingController emailController =
@@ -135,6 +136,7 @@ class _ProfileViewState extends State<ProfileView> {
 
                   const SizedBox(height: 10),
                   CustomTextField(
+                     readOnly: !isEditMode,
                       labelText: '',
                       hintText: 'Enter Name',
                       controller: nameController,
@@ -142,18 +144,19 @@ class _ProfileViewState extends State<ProfileView> {
 
                   // DOB with icon
                   CustomTextField(
+                     readOnly: true,
                     labelText: '',
                     hintText: 'Date of Birth',
                     controller: dobController,
                     bottomSpacing: 11,
                     suffixIcon: IconButton(
                       icon: const Icon(Icons.calendar_today),
-                      onPressed: () => _selectDate(context),
+                      onPressed:!isEditMode?(){}: () => _selectDate(context),
                     ),
                   ),
 
                   InkWell(
-                    onTap: () => _showMultiSelectDialog(context),
+                    onTap: !isEditMode?(){}: () => _showMultiSelectDialog(context),
                     child: Container(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 12, vertical: 14),
@@ -187,13 +190,14 @@ class _ProfileViewState extends State<ProfileView> {
 
                   const SizedBox(height: 10),
                   // ID
-                  CustomTextField(
-                      labelText: '',
-                      hintText: 'ID',
-                      controller: idController,
-                      bottomSpacing: 11),
+                  // CustomTextField(
+                  //     labelText: '',
+                  //     hintText: 'ID',
+                  //     controller: idController,
+                  //     bottomSpacing: 11),
 
                   CustomTextField(
+                    readOnly: !isEditMode,
                     labelText: '',
                     hintText: 'Phone number ',
                     controller: phoneController,
@@ -205,6 +209,7 @@ class _ProfileViewState extends State<ProfileView> {
                   // Email
                   CustomTextField(
                     labelText: '',
+                    readOnly: true,
                     hintText: 'Enter Email',
                     controller: emailController,
                     bottomSpacing: 11,
@@ -346,6 +351,7 @@ class _ProfileViewState extends State<ProfileView> {
   }
 
   void fetchProfile() async {
+    print("enter here");
     final token = box.read('auth_token');
     final profileKey = 'cached_user_profile';
 
@@ -358,6 +364,7 @@ class _ProfileViewState extends State<ProfileView> {
     final cached = box.read(profileKey);
     if (cached != null) {
       final user = json.decode(cached);
+      log(user.toString());
       _loadUserProfile(user);
     }
 
@@ -372,6 +379,7 @@ class _ProfileViewState extends State<ProfileView> {
 
       if (response.statusCode == 200) {
         final responseData = json.decode(response.body);
+        log(responseData.toString());
         final user = responseData['data'][0];
         box.write(profileKey, json.encode(user));
         _loadUserProfile(user);
@@ -390,7 +398,7 @@ class _ProfileViewState extends State<ProfileView> {
   void _loadUserProfile(Map<String, dynamic> user) {
     nameController.text = user['name'] ?? '';
     dobController.text = user['dob'] ?? '';
-    idController.text = user['id'].toString();
+    // idController.text = user['id'].toString();
     phoneController.text = user['phone_number'] ?? '';
     emailController.text = user['email'] ?? '';
 
