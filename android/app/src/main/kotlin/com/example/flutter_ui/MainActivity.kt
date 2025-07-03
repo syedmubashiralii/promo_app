@@ -1,4 +1,4 @@
-package com.example.flutter_ui
+package com.freebee.app
 
 import io.flutter.embedding.android.FlutterActivity
 

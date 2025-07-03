@@ -1,4 +1,8 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_ui/controllers/home_page_controller.dart';
+import 'package:flutter_ui/services/api_service.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
 import '../../controllers/home_controller.dart';
@@ -6,7 +10,6 @@ import '../../utils/color_helper.dart';
 import 'dart:convert';
 import 'package:get_storage/get_storage.dart';
 import 'package:http/http.dart' as http;
-
 
 class RedeemedView extends StatefulWidget {
   const RedeemedView({super.key});
@@ -16,12 +19,11 @@ class RedeemedView extends StatefulWidget {
 }
 
 class _RedeemedViewState extends State<RedeemedView> {
-
   final box = GetStorage();
 
   List<Map<String, dynamic>> redeemedItems = [];
   bool isLoading = true;
-
+  HomePageController homePageController = Get.find();
   @override
   void initState() {
     super.initState();
@@ -31,8 +33,8 @@ class _RedeemedViewState extends State<RedeemedView> {
     controller.redeemRefreshCallback = () {
       fetchRedeemedItems();
     };
-
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -52,133 +54,155 @@ class _RedeemedViewState extends State<RedeemedView> {
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : redeemedItems.isEmpty
-          ? const Center(child: Text("No redeemed items found"))
-          : Padding(
-        padding: const EdgeInsets.all(16),
-        child: ListView.separated(
-          itemCount: redeemedItems.length,
-          separatorBuilder: (_, __) => const SizedBox(height: 12),
-          itemBuilder: (_, index) {
-            final item = redeemedItems[index];
-            final isNetworkImage = item['image'].toString().startsWith('http');
+              ? const Center(child: Text("No redeemed items found"))
+              : Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: ListView.separated(
+                    itemCount: redeemedItems.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 12),
+                    itemBuilder: (_, index) {
+                      final item = redeemedItems[index];
+                      final isNetworkImage =
+                          item['image'].toString().startsWith('http');
 
-            return Container(
-              decoration: BoxDecoration(
-                color: ColorHelper.textFieldBGColor,
-                border: Border.all(color: ColorHelper.textFieldBorderColor),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(2),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: ColorHelper.textFieldBorderColor),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(6),
-                        child: isNetworkImage
-                            ? Image.network(
-                          item['image'],
-                          width: 45,
-                          height: 45,
-                          fit: BoxFit.cover,
-                        )
-                            : Image.asset(
-                          item['image'],
-                          width: 45,
-                          height: 45,
-                          fit: BoxFit.cover,
+                      return Container(
+                        decoration: BoxDecoration(
+                          color: ColorHelper.textFieldBGColor,
+                          border: Border.all(
+                              color: ColorHelper.textFieldBorderColor),
+                          borderRadius: BorderRadius.circular(10),
                         ),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            item['title'],
-                            style: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            item['subtitle'],
-                            style: const TextStyle(fontSize: 12, color: Colors.grey),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          const SizedBox(height: 10),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 10),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text.rich(
-                                TextSpan(
-                                  text: "Promo Code: ",
-                                  style: const TextStyle(fontSize: 11, color: Colors.black),
+                              Container(
+                                padding: const EdgeInsets.all(2),
+                                decoration: BoxDecoration(
+                                  border: Border.all(
+                                      color: ColorHelper.textFieldBorderColor),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(6),
+                                  child: isNetworkImage
+                                      ? Image.network(
+                                          item['image'],
+                                          width: 45,
+                                          height: 45,
+                                          fit: BoxFit.cover,
+                                        )
+                                      : Image.asset(
+                                          item['image'],
+                                          width: 45,
+                                          height: 45,
+                                          fit: BoxFit.cover,
+                                        ),
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    TextSpan(
-                                      text: item['promoCode'],
-                                      style: const TextStyle(fontWeight: FontWeight.bold),
+                                    Text(
+                                      item['title'],
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      item['subtitle'],
+                                      style: const TextStyle(
+                                          fontSize: 12, color: Colors.grey),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    const SizedBox(height: 10),
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text.rich(
+                                          TextSpan(
+                                            text: "Promo Code: ",
+                                            style: const TextStyle(
+                                                fontSize: 11,
+                                                color: Colors.black),
+                                            children: [
+                                              TextSpan(
+                                                text: item['promoCode'],
+                                                style: const TextStyle(
+                                                    fontWeight:
+                                                        FontWeight.bold),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        Text(
+                                          item['date'],
+                                          style: const TextStyle(
+                                              fontSize: 11,
+                                              color: Colors.black),
+                                        ),
+                                      ],
                                     ),
                                   ],
                                 ),
                               ),
-                              Text(
-                                item['date'],
-                                style: const TextStyle(fontSize: 11, color: Colors.black),
+                              const SizedBox(width: 8),
+                              GestureDetector(
+                                onTap: () {
+                                  setState(() {
+                                    final redeemId =
+                                        redeemedItems[index]['redeemId'];
+
+                                    log("${redeemId.toString()} ${redeemId.runtimeType}");
+                                    deleteRedeemedItem(redeemId);
+
+                                    homePageController.redeemedItemIds.remove(
+                                        redeemedItems[index]['itemId']
+                                            .toString());
+                                    homePageController.redeemedItemIds
+                                        .refresh();
+                                  });
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.all(6),
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(6),
+                                    border: Border.all(
+                                        color:
+                                            ColorHelper.textFieldBorderColor),
+                                  ),
+                                  child: Image.asset(
+                                    "assets/images/ic_delete.png",
+                                    height: 20,
+                                    width: 20,
+                                  ),
+                                ),
                               ),
                             ],
                           ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          final redeemId = redeemedItems[index]['redeemId'];
-                          deleteRedeemedItem(redeemId);
-
-                        });
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.all(6),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(6),
-                          border: Border.all(color: ColorHelper.textFieldBorderColor),
                         ),
-                        child: Image.asset(
-                          "assets/images/ic_delete.png",
-                          height: 20,
-                          width: 20,
-                        ),
-                      ),
-                    ),
-                  ],
+                      );
+                    },
+                  ),
                 ),
-              ),
-            );
-          },
-        ),
-      ),
-
     );
   }
+
   Future<void> fetchRedeemedItems() async {
     final token = box.read('auth_token');
     if (token == null) return;
 
     try {
       final response = await http.get(
-        Uri.parse('https://promo.koderspoint.com/api/redeemed-item'),
+        Uri.parse('$baseUrl/redeemed-item'),
         headers: {
           'Authorization': 'Bearer $token',
           'Accept': 'application/json',
@@ -193,6 +217,7 @@ class _RedeemedViewState extends State<RedeemedView> {
             final item = entry['items'][0];
             return {
               'redeemId': entry['id'],
+              'itemId': item['id'] ?? '',
               'title': item['title'] ?? '',
               'subtitle': item['description'] ?? '',
               'image': item['media'].isNotEmpty
@@ -213,13 +238,14 @@ class _RedeemedViewState extends State<RedeemedView> {
       setState(() => isLoading = false);
     }
   }
+
   Future<void> deleteRedeemedItem(int redeemId) async {
     final token = box.read('auth_token');
     if (token == null) return;
 
     try {
       final response = await http.delete(
-        Uri.parse('https://promo.koderspoint.com/api/redeemed-item/destroy/$redeemId'),
+        Uri.parse('$baseUrl/redeemed-item/destroy/$redeemId'),
         headers: {
           'Authorization': 'Bearer $token',
           'Accept': 'application/json',
@@ -240,9 +266,8 @@ class _RedeemedViewState extends State<RedeemedView> {
     } catch (e) {
       print("Error deleting redeemed item: $e");
       ScaffoldMessenger.of(context).showSnackBar(
-         SnackBar(content: Text("Error deleting redeemed item: $e")),
+        SnackBar(content: Text("Error deleting redeemed item: $e")),
       );
     }
   }
-
 }

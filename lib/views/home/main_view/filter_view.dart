@@ -35,8 +35,8 @@ class _FilterViewState extends State<FilterView> {
   void initState() {
     super.initState();
     fetchCategories();
-
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -47,135 +47,142 @@ class _FilterViewState extends State<FilterView> {
         elevation: 0,
         centerTitle: true,
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: SingleChildScrollView(
-              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Location (Zip Code)
-                    CustomTextField(
-                      labelText: "Location (Zip Code):",
-                      hintText: "i.e., 456678",
-                      controller: _zipController,
-                    ),
-                    const SizedBox(height: 16),
+      body: SafeArea(
+        child: Column(
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                keyboardDismissBehavior:
+                    ScrollViewKeyboardDismissBehavior.onDrag,
+                child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Location (Zip Code)
+                      CustomTextField(
+                        labelText: "Location (Zip Code):",
+                        hintText: "i.e., 456678",
+                        controller: _zipController,
+                      ),
+                      const SizedBox(height: 16),
 
-                    const Text(
-                      "By Category",
-                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-                    ),
-                    const SizedBox(height: 8),
-                    Wrap(
-                      spacing: 8,
-                      children: [
-                        _isLoadingCategories
-                            ? const CircularProgressIndicator()
-                            : SizedBox(
-                          height: 40,
-                          child: ListView.builder(
-                            scrollDirection: Axis.horizontal,
-                            itemCount: categories.length,
-                            itemBuilder: (_, index) {
-                              String category = categories[index];
-                              bool isSelected = category == selectedCategory;
+                      const Text(
+                        "By Category",
+                        style: TextStyle(
+                            fontSize: 14, fontWeight: FontWeight.w500),
+                      ),
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 8,
+                        children: [
+                          _isLoadingCategories
+                              ? const CircularProgressIndicator()
+                              : SizedBox(
+                                  height: 40,
+                                  child: ListView.builder(
+                                    scrollDirection: Axis.horizontal,
+                                    itemCount: categories.length,
+                                    itemBuilder: (_, index) {
+                                      String category = categories[index];
+                                      bool isSelected =
+                                          category == selectedCategory;
 
-                              return Padding(
-                                padding: const EdgeInsets.only(right: 10),
-                                child: ChoiceChip(
-                                  label: Text(
-                                    category,
-                                    style: TextStyle(
-                                      color: isSelected
-                                          ? Colors.white
-                                          : const Color(0xFFB3B3B3),
-                                    ),
-                                  ),
-                                  selected: isSelected,
-                                  selectedColor: ColorHelper.blue,
-                                  backgroundColor: Colors.white,
-                                  side: BorderSide(
-                                    color: isSelected
-                                        ? ColorHelper.blue
-                                        : const Color(0xFFB3B3B3),
-                                  ),
-                                  onSelected: (_) {
-                                    setState(() {
-                                      selectedCategory = category;
-                                    });
-                                  },
-                                  showCheckmark: false,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(8),
+                                      return Padding(
+                                        padding:
+                                            const EdgeInsets.only(right: 10),
+                                        child: ChoiceChip(
+                                          label: Text(
+                                            category,
+                                            style: TextStyle(
+                                              color: isSelected
+                                                  ? Colors.white
+                                                  : const Color(0xFFB3B3B3),
+                                            ),
+                                          ),
+                                          selected: isSelected,
+                                          selectedColor: ColorHelper.blue,
+                                          backgroundColor: Colors.white,
+                                          side: BorderSide(
+                                            color: isSelected
+                                                ? ColorHelper.blue
+                                                : const Color(0xFFB3B3B3),
+                                          ),
+                                          onSelected: (_) {
+                                            setState(() {
+                                              selectedCategory = category;
+                                            });
+                                          },
+                                          showCheckmark: false,
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(8),
+                                          ),
+                                        ),
+                                      );
+                                    },
                                   ),
                                 ),
-                              );
-                            },
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 20),
-                    _buildDropdown(),
-                    const SizedBox(height: 20),
-                  ],
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+                      _buildDropdown(),
+                      const SizedBox(height: 20),
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
 
-          // Buttons pinned to the bottom
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            child: Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () {
-                      setState(() {
-                        _zipController.clear();
-                        _selectedDateCon.clear();
-                        selectedAffiliations.clear();
-                        selectedCategory="";
-                      });
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: ColorHelper.red,
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8)),
+            // Buttons pinned to the bottom
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        setState(() {
+                          _zipController.clear();
+                          _selectedDateCon.clear();
+                          selectedAffiliations.clear();
+                          selectedCategory = "";
+                        });
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: ColorHelper.red,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8)),
+                      ),
+                      child: const Text("Reset",
+                          style: TextStyle(color: ColorHelper.white)),
                     ),
-                    child: const Text("Reset",
-                        style: TextStyle(color: ColorHelper.white)),
                   ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.pop(context, {
-                        'zipCode': _zipController.text.trim(),
-                        'selectedCategory': selectedCategory,
-                        'selectedAffiliations': selectedAffiliations,
-                      });
-                    },
-
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: ColorHelper.blue,
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8)),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.pop(context, {
+                          'zipCode': _zipController.text.trim(),
+                          'selectedCategory': selectedCategory,
+                          'selectedAffiliations': selectedAffiliations,
+                        });
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: ColorHelper.blue,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8)),
+                      ),
+                      child: const Text("Apply Filter",
+                          style: TextStyle(color: ColorHelper.white)),
                     ),
-                    child: const Text("Apply Filter",
-                        style: TextStyle(color: ColorHelper.white)),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -216,7 +223,6 @@ class _FilterViewState extends State<FilterView> {
                     ),
                   ),
                   GestureDetector(
-
                     child: Image.asset(
                       'assets/images/drop.png',
                       width: 15,
@@ -232,13 +238,14 @@ class _FilterViewState extends State<FilterView> {
       ),
     );
   }
+
   void _showMultiSelectDialog(BuildContext context) {
     showDialog(
       context: context,
       builder: (_) {
         return Dialog(
           shape:
-          RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
           backgroundColor: Colors.white,
           child: Container(
             width: double.infinity,
@@ -303,8 +310,6 @@ class _FilterViewState extends State<FilterView> {
       },
     );
   }
-
-
 
   void fetchCategories() async {
     try {

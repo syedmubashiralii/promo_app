@@ -3,10 +3,15 @@ import 'dart:convert';
 import 'package:carousel_slider/carousel_slider.dart';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_ui/controllers/home_page_controller.dart';
+import 'package:flutter_ui/models/items_model.dart';
+import 'package:flutter_ui/services/api_service.dart';
 import 'package:flutter_ui/utils/color_helper.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:http/http.dart' as http;
+import 'package:share_plus/share_plus.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../report_view.dart';
 
@@ -18,21 +23,20 @@ class ItemDetailView extends StatefulWidget {
 }
 
 class _ItemDetailViewState extends State<ItemDetailView> {
-  late final Map<String, dynamic> item;
+  late final ItemModel item;
   Set<int> redeemedItemIds = {};
   int _currentImageIndex = 0;
-
+  HomePageController homePageController = Get.find();
 
   @override
   void initState() {
     super.initState();
 
     final args = Get.arguments;
-    if (args is Map<String, dynamic>) {
+    if (args is ItemModel) {
       item = args;
     } else {
       // Handle the case where no valid arguments are passed
-      item = {};
       WidgetsBinding.instance.addPostFrameCallback((_) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('No item data provided.')),
@@ -44,9 +48,12 @@ class _ItemDetailViewState extends State<ItemDetailView> {
 
   @override
   Widget build(BuildContext context) {
-    final imageUrl = item['media'] != null && item['media'].isNotEmpty
-        ? item['media'][0]['original_url']
+    final imageUrl = item.media != null && item.media!.isNotEmpty
+        ? item.media![0].originalUrl
         : null;
+
+    bool redeemed =
+        homePageController.redeemedItemIds.contains(item.id.toString());
 
     return Scaffold(
       appBar: AppBar(
@@ -71,19 +78,17 @@ class _ItemDetailViewState extends State<ItemDetailView> {
                   children: [
                     // Product Image
                     Stack(
-                      children: [
-                        _buildImageSlider()
-                      ],
+                      children: [_buildImageSlider()],
                     ),
                     const SizedBox(height: 8),
-        
+
                     // Title and Price
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Expanded(
                           child: Text(
-                            item['title'] ?? 'No Title',
+                            item.title ?? 'No Title',
                             style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w500,
@@ -91,7 +96,7 @@ class _ItemDetailViewState extends State<ItemDetailView> {
                           ),
                         ),
                         Text(
-                          item['is_free'] == 1 ? 'Free' : "\$${item['price']}",
+                          item.isFree == 1 ? 'Free' : "\$${item.price}",
                           style: const TextStyle(
                             fontSize: 17,
                             fontWeight: FontWeight.bold,
@@ -101,60 +106,79 @@ class _ItemDetailViewState extends State<ItemDetailView> {
                       ],
                     ),
                     const SizedBox(height: 12),
-        
+
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         _buildInfoPill(
-                          label: "Location",
-                          value: item['location'] ?? 'N/A',
-                          backgroundColor: const Color(0xFFD4E8FF),
-                        ),
-                        _buildInfoPill(
                           label: "Status",
-                          value: item['status'] ?? 'N/A',
+                          value: item.status ?? 'N/A',
                           backgroundColor: const Color(0xFFEBDDF9),
                         ),
                         _buildInfoPill(
                           label: "Affiliation",
-                          value: item['affiliation_id'].toString(),
+                          value: item.affiliationId.toString(),
                           backgroundColor: const Color(0xFFFFDDE1),
                         ),
                       ],
                     ),
-        
+                    const SizedBox(height: 10),
+                    Builder(builder: (context) {
+                      bool isIndividual = item.businessType == 'individual' ||
+                          item.businessType == null;
+                      return GestureDetector(
+                        onTap: () {
+                          if (!isIndividual) {
+                            final Uri _url = Uri.parse(item.locationUrl ?? "");
+                            _launchUrl(_url);
+                          }
+                        },
+                        child: _buildInfoPill(
+                          width: Get.width,
+                          label: isIndividual ? "Location" : "Location Url",
+                          value: isIndividual
+                              ? item.location ?? "N/A"
+                              : item.locationUrl ?? 'N/A',
+                          backgroundColor: const Color(0xFFD4E8FF),
+                        ),
+                      );
+                    }),
+
                     const SizedBox(height: 20),
-        
+
                     const Text(
                       "Description",
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                      style:
+                          TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      item['description'] ?? '',
+                      item.description ?? '',
                       style: const TextStyle(color: Colors.grey, height: 1.5),
                     ),
-        
+
                     const SizedBox(height: 24),
                     const Text(
                       "Redemption Instructions",
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                      style:
+                          TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
                     ),
                     const SizedBox(height: 6),
                     BulletList([
-                      item['redemption_instruction'] ?? 'Not available',
+                      item.redemptionInstruction ?? 'Not available',
                     ]),
-        
+
                     const SizedBox(height: 24),
                     const Text(
                       "Eligibility Criteria",
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                      style:
+                          TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
                     ),
                     const SizedBox(height: 6),
                     BulletList([
-                      item['eligibility_criteria'] ?? 'Not available',
+                      item.eligibilityCriteria ?? 'Not available',
                     ]),
-        
+
                     const SizedBox(height: 90),
                   ],
                 ),
@@ -164,8 +188,8 @@ class _ItemDetailViewState extends State<ItemDetailView> {
               padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
               child: Row(
                 children: [
-                  SizedBox(
-                    width: MediaQuery.of(context).size.width * 0.3,
+                  Expanded(
+                    flex: 1,
                     child: OutlinedButton(
                       onPressed: () {
                         Get.to(() => const ReportView());
@@ -180,22 +204,46 @@ class _ItemDetailViewState extends State<ItemDetailView> {
                           style: TextStyle(color: Colors.black)),
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  SizedBox(
-                    width: MediaQuery.of(context).size.width * 0.55,
+                  const SizedBox(width: 5),
+                  Expanded(
+                    flex: 2,
                     child: ElevatedButton(
-                      onPressed: () {
-                        final int itemId = item['id'];
-                        mStoreRedeemItem(itemId);
-                      },
+                      onPressed: redeemed
+                          ? null
+                          : () {
+                              final int itemId = item.id;
+                              mStoreRedeemItem(itemId);
+                              homePageController.redeemedItemIds
+                                  .add(itemId.toString());
+                              homePageController.redeemedItemIds.refresh();
+                              setState(() {});
+                            },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: ColorHelper.blue,
+                        backgroundColor:
+                            redeemed ? ColorHelper.dullBlack : ColorHelper.blue,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
                         ),
                       ),
                       child: const Text("Redeem Now",
                           style: TextStyle(color: Colors.white)),
+                    ),
+                  ),
+                  const SizedBox(width: 5),
+                  Expanded(
+                    flex: 1,
+                    child: OutlinedButton(
+                      onPressed: () {
+                        _shareItem(item);
+                      },
+                      style: OutlinedButton.styleFrom(
+                        side: BorderSide(color: Colors.grey.shade400),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      child: const Text("Share",
+                          style: TextStyle(color: Colors.black)),
                     ),
                   ),
                 ],
@@ -207,8 +255,44 @@ class _ItemDetailViewState extends State<ItemDetailView> {
     );
   }
 
+  void _shareItem(ItemModel item) {
+    final title = item.title ?? 'Awesome Freebie';
+    const businessName = ' Business';
+    final description = item.description ?? '';
+    final redemption =
+        item.redemptionInstruction ?? 'See details in the FreeBee app.';
+    final locationUrl =
+        item.businessType == 'individual' || item.businessType == null
+            ? item.location
+            : item.locationUrl ??
+                'https://freebecause.com'; // fallback if not available
+    const applink =
+        'https://play.google.com/store/apps/details?id=com.freebee.app';
+
+    final shareMessage = '''
+Hey! Check this out: *$title* from $businessName!
+$description
+
+How to redeem: $redemption
+Find location or redeem here: $locationUrl
+
+🎁 Download the FreeBee app to unlock this and other free deals!
+Found this on FreeBee – your app for personalized freebies!
+$applink
+
+''';
+
+    SharePlus.instance.share(ShareParams(text: shareMessage.trim()));
+  }
+
+  Future<void> _launchUrl(_url) async {
+    if (!await launchUrl(_url)) {
+      throw Exception('Could not launch $_url');
+    }
+  }
+
   Widget _buildImageSlider() {
-    final List<dynamic> mediaList = item['media'] ?? [];
+    final List<PromoMedia> mediaList = item.media ?? [];
 
     if (mediaList.isEmpty) {
       return Container(
@@ -231,14 +315,15 @@ class _ItemDetailViewState extends State<ItemDetailView> {
         CarouselSlider.builder(
           itemCount: mediaList.length,
           itemBuilder: (context, index, realIndex) {
-            final imageUrl = mediaList[index]['original_url'];
+            final imageUrl = mediaList[index].originalUrl;
             return ClipRRect(
               borderRadius: BorderRadius.circular(8),
               child: Image.network(
-                imageUrl,
+                imageUrl ?? "",
                 fit: BoxFit.cover,
                 width: double.infinity,
-                errorBuilder: (_, __, ___) => const Center(child: Text('No image')),
+                errorBuilder: (_, __, ___) =>
+                    const Center(child: Text('No image')),
               ),
             );
           },
@@ -258,33 +343,33 @@ class _ItemDetailViewState extends State<ItemDetailView> {
           ),
         ),
         const SizedBox(height: 8),
-
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: List.generate(mediaList.length, (index) {
-              return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 3),
-                child: Icon(
-                  Icons.circle,
-                  size: 8,
-                  color: _currentImageIndex == index
-                      ? ColorHelper.blue
-                      : const Color(0xffECECEC),
-                ),
-              );
-            }),
-          ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: List.generate(mediaList.length, (index) {
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 3),
+              child: Icon(
+                Icons.circle,
+                size: 8,
+                color: _currentImageIndex == index
+                    ? ColorHelper.blue
+                    : const Color(0xffECECEC),
+              ),
+            );
+          }),
+        ),
       ],
     );
   }
 
   Widget _buildInfoPill({
     required String label,
+    double? width,
     required String value,
     required Color backgroundColor,
   }) {
     return Container(
-      width: 100,
+      width: width ?? 100,
       padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 8),
       decoration: BoxDecoration(
         color: backgroundColor,
@@ -326,7 +411,7 @@ class _ItemDetailViewState extends State<ItemDetailView> {
       return;
     }
 
-   /* if (redeemedItemIds.contains(itemId)) {
+    /* if (redeemedItemIds.contains(itemId)) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Item is already redeemed")),
       );
@@ -335,7 +420,7 @@ class _ItemDetailViewState extends State<ItemDetailView> {
 
     try {
       final response = await http.post(
-        Uri.parse('https://promo.koderspoint.com/api/redeemed-item/store'),
+        Uri.parse('$baseUrl/redeemed-item/store'),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
@@ -357,7 +442,6 @@ class _ItemDetailViewState extends State<ItemDetailView> {
           SnackBar(content: Text(displayText)),
         );
       }
-
     } catch (e) {
       print("Redeem error: $e");
       ScaffoldMessenger.of(context).showSnackBar(
@@ -365,6 +449,7 @@ class _ItemDetailViewState extends State<ItemDetailView> {
       );
     }
   }
+
   Future<void> fetchRedeemedItems() async {
     final box = GetStorage();
     final token = box.read('auth_token');
@@ -372,7 +457,7 @@ class _ItemDetailViewState extends State<ItemDetailView> {
 
     try {
       final response = await http.get(
-        Uri.parse('https://promo.koderspoint.com/api/redeemed-item'),
+        Uri.parse('$baseUrl/redeemed-item'),
         headers: {
           'Authorization': 'Bearer $token',
           'Accept': 'application/json',
@@ -383,20 +468,17 @@ class _ItemDetailViewState extends State<ItemDetailView> {
         final data = jsonDecode(response.body)['data'];
 
         redeemedItemIds = data
-            .where((entry) => entry['items'] != null && entry['items'].isNotEmpty)
+            .where(
+                (entry) => entry['items'] != null && entry['items'].isNotEmpty)
             .map<int>((entry) => entry['items'][0]['id'])
             .toSet();
-
-
       } else {
         print('Failed to fetch redeemed items: ${response.statusCode}');
-
       }
     } catch (e) {
       print("Error fetching redeemed items: $e");
     }
   }
-
 }
 
 class BulletList extends StatelessWidget {

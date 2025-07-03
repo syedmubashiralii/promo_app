@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_ui/services/api_service.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:http/http.dart' as http;
@@ -136,7 +137,7 @@ class _ProfileViewState extends State<ProfileView> {
 
                   const SizedBox(height: 10),
                   CustomTextField(
-                     readOnly: !isEditMode,
+                      readOnly: !isEditMode,
                       labelText: '',
                       hintText: 'Enter Name',
                       controller: nameController,
@@ -144,19 +145,22 @@ class _ProfileViewState extends State<ProfileView> {
 
                   // DOB with icon
                   CustomTextField(
-                     readOnly: true,
+                    readOnly: true,
                     labelText: '',
                     hintText: 'Date of Birth',
                     controller: dobController,
                     bottomSpacing: 11,
                     suffixIcon: IconButton(
                       icon: const Icon(Icons.calendar_today),
-                      onPressed:!isEditMode?(){}: () => _selectDate(context),
+                      onPressed:
+                          !isEditMode ? () {} : () => _selectDate(context),
                     ),
                   ),
 
                   InkWell(
-                    onTap: !isEditMode?(){}: () => _showMultiSelectDialog(context),
+                    onTap: !isEditMode
+                        ? () {}
+                        : () => _showMultiSelectDialog(context),
                     child: Container(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 12, vertical: 14),
@@ -242,6 +246,8 @@ class _ProfileViewState extends State<ProfileView> {
                           box.remove('cached_items');
                           box.remove('cached_categories');
                           box.remove('cached_favorites');
+                          box.remove('latitude');
+                          box.remove('longitude');
                           Get.offAllNamed(Routes.LOGIN);
                         }
                       },
@@ -254,10 +260,88 @@ class _ProfileViewState extends State<ProfileView> {
                       ),
                     ),
                   ),
+
+                  const SizedBox(height: 20),
+
+                  SizedBox(
+                    width: double.infinity,
+                    height: 48,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: ColorHelper.red,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      onPressed: () async {
+                        final confirmed = await showDialog<bool>(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            title: const Text("Confirm Deletion"),
+                            content: const Text(
+                                "Are you sure you want to delete your account? This action cannot be undone."),
+                            actions: [
+                              TextButton(
+                                onPressed: () =>
+                                    Navigator.of(context).pop(false),
+                                child: const Text("Cancel"),
+                              ),
+                              TextButton(
+                                onPressed: () =>
+                                    Navigator.of(context).pop(true),
+                                child: const Text(
+                                  "Delete",
+                                  style: TextStyle(color: Colors.red),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+
+                        if (confirmed == true) {
+                          // TODO: Add your delete logic here (e.g., Firebase delete, API call)
+
+                          // Restart the app
+                          deleteProfile();
+                        }
+                      },
+                      child: const Text(
+                        "Delete Account",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
     );
+  }
+
+  Future<void> deleteProfile() async {
+    final token = box.read('auth_token');
+    var headers = {'Authorization': 'Bearer ${token}'};
+    var request = http.Request(
+        'POST', Uri.parse('$baseUrl/delete_user'));
+
+    request.headers.addAll(headers);
+
+    http.StreamedResponse response = await request.send();
+
+    if (response.statusCode == 200) {
+      print(await response.stream.bytesToString());
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Profile deleted successfully!')),
+      );
+      Get.offAllNamed(Routes.LOGIN);
+    } else {
+      print(response.reasonPhrase);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to delete profile')),
+      );
+    }
   }
 
   Future<void> _showMultiSelectDialog(BuildContext context) async {
@@ -370,7 +454,7 @@ class _ProfileViewState extends State<ProfileView> {
 
     try {
       final response = await http.get(
-        Uri.parse('https://promo.koderspoint.com/api/user-profile'),
+        Uri.parse('$baseUrl/user-profile'),
         headers: {
           'Authorization': 'Bearer $token',
           'Accept': 'application/json',
@@ -418,7 +502,7 @@ class _ProfileViewState extends State<ProfileView> {
   Future<void> updateProfile() async {
     final token = box.read('auth_token');
     final uri =
-        Uri.parse('https://promo.koderspoint.com/api/user-profile/update');
+        Uri.parse('$baseUrl/user-profile/update');
 
     final response = await http.post(
       uri,

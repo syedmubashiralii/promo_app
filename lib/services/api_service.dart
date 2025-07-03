@@ -1,13 +1,16 @@
 import 'dart:convert';
 import 'dart:developer';
+import 'package:flutter_ui/models/items_model.dart';
 import 'package:http/http.dart' as http;
 import 'package:get_storage/get_storage.dart';
 
+
+   String baseUrl = 'https://promo.koderspoint.com/api';
 class ApiService {
   final box = GetStorage();
 
   String? get token => box.read('auth_token');
-   String baseUrl = 'https://promo.koderspoint.com/api';
+
 
   Map<String, String> get _headers => {
     'Authorization': 'Bearer $token',
@@ -19,30 +22,31 @@ class ApiService {
   final String _favoritesKey = 'cached_favorites';
 
 
-  Future<List<dynamic>> fetchItems() async {
-    final cachedData = box.read(_itemsKey);
-    log(cachedData.toString()+"Items Cached Data");
-    if (cachedData != null) {
-      log("Enter ${DateTime.now().toString()}");
-      _refreshItems();
-      log("Returning ${DateTime.now().toString()}");
-      return List<dynamic>.from(json.decode(cachedData));
-    } else {
-      return await _refreshItems();
-    }
+ Future<List<ItemModel>> fetchItems() async {
+  final cachedData = box.read(_itemsKey);
+  if (cachedData != null) {
+    _refreshItems(); // Optional: non-blocking cache refresh
+    final List decodedList = json.decode(cachedData);
+    return decodedList.map((item) => ItemModel.fromJson(item)).toList();
+  } else {
+    return await _refreshItems();
   }
+}
 
-  Future<List<dynamic>> _refreshItems() async {
-    try {
-      final response = await http.get(Uri.parse('$baseUrl/items'), headers: _headers);
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body)['data'];
-        box.write(_itemsKey, json.encode(data));
-        return data;
-      }
-    } catch (_) {}
-    return [];
+Future<List<ItemModel>> _refreshItems() async {
+  try {
+    final response = await http.get(Uri.parse('$baseUrl/items'), headers: _headers);
+    if (response.statusCode == 200) {
+      final List data = json.decode(response.body)['data'];
+      box.write(_itemsKey, json.encode(data));
+      return data.map((item) => ItemModel.fromJson(item)).toList();
+    }
+  } catch (e) {
+    print('Error fetching items: $e');
   }
+  return [];
+}
+
 
   Future<List<dynamic>> fetchFavoriteList() async {
     final response = await http.get(Uri.parse('$baseUrl/favourite-item'), headers: _headers);

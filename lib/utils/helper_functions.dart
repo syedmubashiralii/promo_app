@@ -33,3 +33,9 @@ class HelperFunctions {
   }
 
 }
+
+
+ void showSnackbar(String message) {
+    ScaffoldMessenger.of(navigator?.context ?? Get.context!)
+        .showSnackBar(SnackBar(content: Text(message)));
+  }

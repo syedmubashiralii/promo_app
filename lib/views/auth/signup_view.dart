@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_ui/services/api_service.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 
@@ -61,156 +62,180 @@ class _SignupViewState extends State<SignupView> {
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 15),
           child: Center(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
                 const Text(
-                "Sign Up!",
-                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 20),
-              CustomTextField(
-                labelText: "Full Name:",
-                hintText: "i.e., John Smith",
-                controller: _fullNameController,
-              ),
-              _buildDateField(),
-              CustomTextField(
-                labelText: "Location (Zip Code):",
-                hintText: "i.e., 456678",
-                controller: _zipController,
-              ),
-              _buildDropdown(),
-              const SizedBox(height: 5),
-              CustomTextField(
-                  labelText: "Email:",
-                  hintText: "i.e., JohnSmith123@gmail.com",
-                  controller: _emailController,
-                  keyboardType: TextInputType.emailAddress,
+                  "Sign Up!",
+                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 20),
+                CustomTextField(
+                  labelText: "Full Name:",
+                  hintText: "i.e., John Smith",
+                  controller: _fullNameController,
+                ),
+                _buildDateField(),
+                CustomTextField(
+                  labelText: "Location (Zip Code):",
+                  hintText: "i.e., 456678",
+                  controller: _zipController,
+                ),
+                _buildDropdown(),
+                const SizedBox(height: 5),
+                CustomTextField(
+                    labelText: "Email:",
+                    hintText: "i.e., JohnSmith123@gmail.com",
+                    controller: _emailController,
+                    keyboardType: TextInputType.emailAddress,
+                    prefixIcon: Image.asset(
+                      'assets/images/mail.png',
+                      width: 14,
+                      height: 14,
+                    )),
+                const SizedBox(height: 5),
+                CustomTextField(
+                  labelText: "Phone Number (optional):",
+                  hintText: "i.e., +1223452334",
+                  controller: _phoneController,
+                  keyboardType: TextInputType.phone,
+                ),
+                const SizedBox(height: 5),
+                CustomTextField(
+                  labelText: "Password:",
+                  hintText: "i.e., ************",
+                  controller: _passwordController,
+                  obscureText: _obscureText,
+                  keyboardType: TextInputType.text,
                   prefixIcon: Image.asset(
-                    'assets/images/mail.png',
+                    'assets/images/lock.png',
                     width: 14,
                     height: 14,
-                  )),
-              const SizedBox(height: 5),
-              CustomTextField(
-                labelText: "Phone Number (optional):",
-                hintText: "i.e., +1223452334",
-                controller: _phoneController,
-                keyboardType: TextInputType.phone,
-              ),
-              const SizedBox(height: 5),
-              CustomTextField(
-                labelText: "Password:",
-                hintText: "i.e., ************",
-                controller: _passwordController,
-                obscureText: _obscureText,
-                keyboardType: TextInputType.text,
-                prefixIcon: Image.asset(
-                  'assets/images/lock.png',
-                  width: 14,
-                  height: 14,
-                ),
-                suffixIcon: IconButton(
-                  icon: Image.asset(
-                    _obscureText
-                        ? 'assets/images/eye_on.png'
-                        : 'assets/images/eye_off.png',
-                    width: 24, // Customize size if needed
-                    height: 24, // Customize size if needed
                   ),
-                  onPressed: () {
-                    setState(() {
-                      _obscureText = !_obscureText;
-                    });
-                  },
-                ),
-              ),
-              const SizedBox(height: 15),
-              ElevatedButton(
-                onPressed: _isLoading ? null :  () async {
-                  // if (selectedAffiliationIndexes.isEmpty) {
-                  //   Get.snackbar("Error", "Please select at least one affiliation");
-                  //   return;
-                  // }
-                  if (_emailController.text.isEmpty) {
-                    Get.snackbar("Error", "Email is required",
-                        backgroundColor: Colors.red, colorText: Colors.white);
-                    return;
-                  }
-
-                  if (_zipController.text.isEmpty) {
-                    Get.snackbar("Error", "Zip Code is required",
-                        backgroundColor: Colors.red, colorText: Colors.white);
-                    return;
-                  }
-
-                  if (_passwordController.text.isEmpty) {
-                    Get.snackbar("Error", "Password is required",
-                        backgroundColor: Colors.red, colorText: Colors.white);
-                    return;
-                  }
-
-                  await registerUser(
-                    name: _fullNameController.text,
-                    email: _emailController.text,
-                    location: _zipController.text,
-                    dob: _dobController.text,
-                    password: _passwordController.text,
-                    affiliationIds: selectedAffiliationIndexes.toList(),
-                    phoneNumber: _phoneController.text,
-                  );
-
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: ColorHelper.blue,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  minimumSize: const Size.fromHeight(45),
-                ),
-                child: _isLoading
-                    ? const SizedBox(
-                  height: 22,
-                  width: 22,
-                  child: CircularProgressIndicator(
-                      color: Colors.blue, strokeWidth: 2),
-                )
-                    : const Text(
-                    "Sign Up",
-                    style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold)),
-              ),
-
-              const SizedBox(height: 15),
-          Center(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Text("Already have an account?"),
-                GestureDetector(
-                  onTap: () {
-                    Get.back();
-                  },
-                  child: const Text(
-                    "Login",
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
+                  suffixIcon: IconButton(
+                    icon: Image.asset(
+                      _obscureText
+                          ? 'assets/images/eye_on.png'
+                          : 'assets/images/eye_off.png',
+                      width: 24, // Customize size if needed
+                      height: 24, // Customize size if needed
                     ),
+                    onPressed: () {
+                      setState(() {
+                        _obscureText = !_obscureText;
+                      });
+                    },
+                  ),
+                ),
+                const SizedBox(height: 15),
+                ElevatedButton(
+                  onPressed: _isLoading
+                      ? null
+                      : () async {
+                          // if (selectedAffiliationIndexes.isEmpty) {
+                          //   Get.snackbar("Error", "Please select at least one affiliation");
+                          //   return;
+                          // }
+                          checkZipCodeValidation();
+                          print(_zipController.text);
+                          await registerUser(
+                            name: _fullNameController.text,
+                            email: _emailController.text,
+                            location: _zipController.text,
+                            dob: _dobController.text,
+                            password: _passwordController.text,
+                            affiliationIds: selectedAffiliationIndexes.toList(),
+                            phoneNumber: _phoneController.text,
+                          );
+                        },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: ColorHelper.blue,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    minimumSize: const Size.fromHeight(45),
+                  ),
+                  child: _isLoading
+                      ? const SizedBox(
+                          height: 22,
+                          width: 22,
+                          child: CircularProgressIndicator(
+                              color: Colors.blue, strokeWidth: 2),
+                        )
+                      : const Text("Sign Up",
+                          style: TextStyle(
+                              fontSize: 16,
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold)),
+                ),
+                const SizedBox(height: 15),
+                Center(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text("Already have an account?"),
+                      GestureDetector(
+                        onTap: () {
+                          Get.back();
+                        },
+                        child: const Text(
+                          "Login",
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
             ),
           ),
-          ],
         ),
       ),
-    ),)
-    ,
     );
+  }
+
+  Future<void> checkZipCodeValidation() async {
+    if (_emailController.text.isEmpty) {
+      Get.snackbar("Error", "Email is required",
+          backgroundColor: Colors.red, colorText: Colors.white);
+      return;
+    }
+
+    if (_zipController.text.isEmpty) {
+      Get.snackbar("Error", "Zip Code is required",
+          backgroundColor: Colors.red, colorText: Colors.white);
+      return;
+    }
+
+    if (_passwordController.text.isEmpty) {
+      Get.snackbar("Error", "Password is required",
+          backgroundColor: Colors.red, colorText: Colors.white);
+      return;
+    }
+    final url = Uri.parse('http://api.zippopotam.us/us/${_zipController.text}');
+    final response = await http.get(url);
+    print(response.body.toString());
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      if (data.containsKey('places') &&
+          data['places'] != null &&
+          data['places'].isNotEmpty) {
+        // Successfully fetched place data
+        final place = data['places'][0];
+        print("Place: ${place['place name']}, ${place['state']}");
+      } else {
+        Get.snackbar("Error", "Invalid Zip Code",
+            backgroundColor: Colors.red, colorText: Colors.white);
+        return;
+      }
+    } else {
+      Get.snackbar("Error", "Invalid Zip Code",
+          backgroundColor: Colors.red, colorText: Colors.white);
+      return;
+    }
   }
 
   Widget _buildDateField() {
@@ -219,7 +244,6 @@ class _SignupViewState extends State<SignupView> {
       children: [
         const SizedBox(height: 5),
         GestureDetector(
-          
           child: CustomTextField(
             onTap: () => _selectDate(context),
             readOnly: true,
@@ -255,7 +279,7 @@ class _SignupViewState extends State<SignupView> {
         ),
         const SizedBox(height: 5),
         GestureDetector(
-            onTap: () => _showMultiSelectDialog(context),
+          onTap: () => _showMultiSelectDialog(context),
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
             decoration: BoxDecoration(
@@ -268,13 +292,14 @@ class _SignupViewState extends State<SignupView> {
               children: [
                 Expanded(
                   child: Text(
-                    selectedAffiliations.isEmpty ? "Select Status" : selectedAffiliations.join(", "),
+                    selectedAffiliations.isEmpty
+                        ? "Select Status"
+                        : selectedAffiliations.join(", "),
                     style: const TextStyle(fontSize: 14),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
                 GestureDetector(
-
                   child: Image.asset(
                     'assets/images/drop.png',
                     width: 15,
@@ -290,7 +315,6 @@ class _SignupViewState extends State<SignupView> {
     );
   }
 
-
   Future<void> _showMultiSelectDialog(BuildContext context) async {
     // Make a copy of current selection to pass to dialog
     final selected = Set<int>.from(selectedAffiliationIndexes);
@@ -298,7 +322,7 @@ class _SignupViewState extends State<SignupView> {
 
     final result = await showDialog<Set<int>>(
       context: context,
-      barrierDismissible: true,  // Allow dismiss on tapping outside
+      barrierDismissible: true, // Allow dismiss on tapping outside
       builder: (_) {
         return StatefulBuilder(
           builder: (context, setStateDialog) {
@@ -368,13 +392,15 @@ class _SignupViewState extends State<SignupView> {
     if (result != null) {
       setState(() {
         selectedAffiliationIndexes = result;
-        selectedAffiliations = selectedAffiliationIndexes.map((i) => allAffiliations[i]).toList();
+        selectedAffiliations =
+            selectedAffiliationIndexes.map((i) => allAffiliations[i]).toList();
       });
     } else {
       // Dialog dismissed without explicit return, still update with temp selection
       setState(() {
         selectedAffiliationIndexes = selected;
-        selectedAffiliations = selectedAffiliationIndexes.map((i) => allAffiliations[i]).toList();
+        selectedAffiliations =
+            selectedAffiliationIndexes.map((i) => allAffiliations[i]).toList();
       });
     }
   }
@@ -412,7 +438,7 @@ class _SignupViewState extends State<SignupView> {
     setState(() => _isLoading = true);
 
     try {
-      final url = Uri.parse('https://promo.koderspoint.com/api/register');
+      final url = Uri.parse('$baseUrl/register');
       final response = await http.post(
         url,
         headers: {'Content-Type': 'application/json'},
@@ -434,8 +460,7 @@ class _SignupViewState extends State<SignupView> {
         Get.offAllNamed(Routes.LOGIN);
         Get.snackbar("Success", data['message'] ?? "SignUp successful",
             backgroundColor: Colors.green, colorText: Colors.white);
-      }
-      else {
+      } else {
         final errorMessage =
             data['message'] ?? data['error'] ?? 'Registration failed';
         Get.snackbar("Error", errorMessage,
@@ -448,5 +473,4 @@ class _SignupViewState extends State<SignupView> {
       print("❌ Exception during register: $e");
     }
   }
-
 }

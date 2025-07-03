@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter_ui/services/api_service.dart';
 import 'package:flutter_ui/utils/color_helper.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:http/http.dart' as http;
@@ -35,7 +36,7 @@ class _ReportViewState extends State<ReportView> {
 
     try {
       final response = await http.post(
-        Uri.parse('https://promo.koderspoint.com/api/reports/store'),
+        Uri.parse('$baseUrl/reports/store'),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',

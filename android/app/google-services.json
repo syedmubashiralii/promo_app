@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "433646860258",
+    "project_id": "promo-app-77e4a",
+    "storage_bucket": "promo-app-77e4a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:433646860258:android:6aa9c790b3f4a92078ebbb",
+        "android_client_info": {
+          "package_name": "com.freebee.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDNZg1vwevOgD9103K2FrCCaCiiljdW-aI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

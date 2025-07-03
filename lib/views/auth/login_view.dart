@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_ui/services/api_service.dart';
 import 'package:flutter_ui/utils/color_helper.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
@@ -25,6 +27,11 @@ class _LoginViewState extends State<LoginView> {
 
   @override
   Widget build(BuildContext context) {
+    if (kDebugMode) {
+      print("🔁 LoginView built at: ${DateTime.now()}");
+      _emailController.text = "smubashirali620@gmail.com";
+      _passwordController.text = "Test@1234";
+    }
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -129,15 +136,16 @@ class _LoginViewState extends State<LoginView> {
                           ),
                           child: _isLoading
                               ? const SizedBox(
-                            height: 22,
-                            width: 22,
-                            child: CircularProgressIndicator(color: Colors.blue, strokeWidth: 2),
-                          )
+                                  height: 22,
+                                  width: 22,
+                                  child: CircularProgressIndicator(
+                                      color: Colors.blue, strokeWidth: 2),
+                                )
                               : const Text(
-                            "Login",
-                            style: TextStyle(fontSize: 15, color: Colors.white),
-                          ),
-
+                                  "Login",
+                                  style: TextStyle(
+                                      fontSize: 15, color: Colors.white),
+                                ),
                         ),
                       ),
 
@@ -203,7 +211,7 @@ class _LoginViewState extends State<LoginView> {
 
     try {
       final response = await http.post(
-        Uri.parse('https://promo.koderspoint.com/api/login'),
+        Uri.parse('$baseUrl/login'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           "email": email,
@@ -223,8 +231,13 @@ class _LoginViewState extends State<LoginView> {
           final token = data['data']['token'];
           final email = data['data']['email'];
           final location = data['data']['location'];
+          final userCoordinated = await getLatLngFromZip(location);
 
           final box = GetStorage();
+          box.write('latitude',
+              userCoordinated == null ? null : userCoordinated['lat']);
+          box.write('longitude',
+              userCoordinated == null ? null : userCoordinated['lon']);
           box.write('auth_token', token);
           box.write('user_email', email);
           box.write('user_location', location);
@@ -249,6 +262,23 @@ class _LoginViewState extends State<LoginView> {
       print("❌ Exception during login: $e");
       Get.snackbar("Error", "Exception during login: $e",
           backgroundColor: Colors.red, colorText: Colors.white);
+    }
+  }
+
+  Future<Map<String, double>?> getLatLngFromZip(String zip) async {
+    final url = Uri.parse('http://api.zippopotam.us/us/$zip');
+    final response = await http.get(url);
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      final place = data['places'][0];
+      return {
+        'lat': double.parse(place['latitude']),
+        'lng': double.parse(place['longitude']),
+      };
+    } else {
+      debugPrint("Failed to get location from ZIP");
+      return null;
     }
   }
 }
