@@ -51,6 +51,20 @@ class _RedeemedViewState extends State<RedeemedView> {
           ),
         ),
       ),
+      floatingActionButton: Container(
+        height: 50,
+        width: 50,
+        child: FloatingActionButton(
+          onPressed: () async {
+            setState(() {
+              isLoading = true;
+            });
+            fetchRedeemedItems();
+          },
+          backgroundColor: ColorHelper.blue,
+          child: const Icon(Icons.refresh, color: Colors.white),
+        ),
+      ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : redeemedItems.isEmpty

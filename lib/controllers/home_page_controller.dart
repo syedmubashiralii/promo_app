@@ -10,7 +10,6 @@ import 'package:get_storage/get_storage.dart';
 import 'package:intl/intl.dart';
 
 class HomePageController extends GetxController with WidgetsBindingObserver {
- 
   final apiService = ApiService();
   final box = GetStorage();
 
@@ -330,6 +329,26 @@ class HomePageController extends GetxController with WidgetsBindingObserver {
     } else {
       debugPrint("Failed to get location from ZIP");
       return null;
+    }
+  }
+
+  Future addPerformance(int itemId, String type) async {
+    final token = box.read('auth_token');
+    if (token == null) return;
+
+    try {
+      final response =
+          await http.post(Uri.parse('$baseUrl/performance/store'), headers: {
+        'Authorization': 'Bearer $token',
+        'Accept': 'application/json',
+      }, body: {
+        "item_id": itemId.toString(),
+        "type": type
+      });
+
+      print(response.body.toString());
+    } catch (e) {
+      print(e.toString());
     }
   }
 

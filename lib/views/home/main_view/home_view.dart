@@ -43,6 +43,20 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
           ),
         );
       }),
+      floatingActionButton: Container(
+        height: 50,
+        width: 50,
+        child: FloatingActionButton(
+          onPressed: () async {
+            homePageController.fetchRedeemedItemsList();
+            homePageController.fetchCategories();
+            homePageController.fetchItems();
+            homePageController.updateFavoriteStatusOnly();
+          },
+          backgroundColor: ColorHelper.blue,
+          child: const Icon(Icons.refresh, color: Colors.white),
+        ),
+      ),
     );
   }
 

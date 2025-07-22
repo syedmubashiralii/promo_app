@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_ui/services/api_service.dart';
@@ -439,6 +440,7 @@ class _SignupViewState extends State<SignupView> {
 
     try {
       final url = Uri.parse('$baseUrl/register');
+      log(phoneNumber.toString());
       final response = await http.post(
         url,
         headers: {'Content-Type': 'application/json'},

@@ -44,6 +44,8 @@ class _ItemDetailViewState extends State<ItemDetailView> {
         Navigator.pop(context);
       });
     }
+
+    homePageController.addPerformance(item.id, 'view');
   }
 
   @override
@@ -130,6 +132,8 @@ class _ItemDetailViewState extends State<ItemDetailView> {
                         onTap: () {
                           if (!isIndividual) {
                             final Uri _url = Uri.parse(item.locationUrl ?? "");
+                            homePageController.addPerformance(
+                                item.id, 'location');
                             _launchUrl(_url);
                           }
                         },

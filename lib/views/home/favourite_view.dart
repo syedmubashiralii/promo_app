@@ -32,7 +32,6 @@ class _FavouriteViewState extends State<FavouriteView> {
     controller.favRefreshCallback = () {
       refreshFavoriteItemsIfChanged();
     };
-
   }
 
   @override
@@ -49,6 +48,17 @@ class _FavouriteViewState extends State<FavouriteView> {
             color: Colors.black,
             fontWeight: FontWeight.w500,
           ),
+        ),
+      ),
+      floatingActionButton: Container(
+        height: 50,
+        width: 50,
+        child: FloatingActionButton(
+          onPressed: () async {
+            fetchFavoriteItems();
+          },
+          backgroundColor: ColorHelper.blue,
+          child: const Icon(Icons.refresh, color: Colors.white),
         ),
       ),
       body: isLoading
@@ -114,14 +124,14 @@ class _FavouriteViewState extends State<FavouriteView> {
                               overflow: TextOverflow.ellipsis,
                             ),
                             trailing: GestureDetector(
-                             /* onTap: () {
+                              /* onTap: () {
                                 setState(() {
                                   final favId = favoriteItems[index]['favId'];
                                   deleteFavoriteItem(favId, index);
                                 });
                               },*/
-                              onTap: () => deleteFavoriteItem(item['favId'], index),
-
+                              onTap: () =>
+                                  deleteFavoriteItem(item['favId'], index),
                               child: Container(
                                 padding: const EdgeInsets.all(8),
                                 decoration: BoxDecoration(
@@ -143,6 +153,7 @@ class _FavouriteViewState extends State<FavouriteView> {
             ),
     );
   }
+
   Future<void> fetchFavoriteItems() async {
     setState(() => isLoading = true);
     try {
@@ -158,6 +169,7 @@ class _FavouriteViewState extends State<FavouriteView> {
       );
     }
   }
+
   Future<void> deleteFavoriteItem(int favId, int index) async {
     final success = await apiService.deleteFavoriteItem(favId);
     if (success) {
@@ -182,7 +194,8 @@ class _FavouriteViewState extends State<FavouriteView> {
       final newItems = await apiService.fetchFavoriteItems();
 
       final newUniqueItems = newItems.where((newItem) {
-        return !favoriteItems.any((existingItem) => existingItem['favId'] == newItem['favId']);
+        return !favoriteItems
+            .any((existingItem) => existingItem['favId'] == newItem['favId']);
       }).toList();
 
       if (newUniqueItems.isNotEmpty) {
@@ -195,5 +208,4 @@ class _FavouriteViewState extends State<FavouriteView> {
       debugPrint('Failed to refresh new favorites');
     }
   }
-
 }
