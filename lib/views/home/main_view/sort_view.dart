@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_ui/controllers/home_page_controller.dart';
 import 'package:flutter_ui/utils/color_helper.dart';
+import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 
-import '../../../utils/widgets/custom_text_field.dart';
+enum DateSortOrder { ascending, descending }
 
 class SortView extends StatefulWidget {
   const SortView({super.key});
@@ -11,18 +14,11 @@ class SortView extends StatefulWidget {
 }
 
 class _SortViewState extends State<SortView> {
-  String? _selectedProximity;
-  TextEditingController _selectedDateCon = TextEditingController();
+  final HomePageController homePageController = Get.find<HomePageController>();
 
-  List<String> selectedAffiliations = [];
-  List<String> allAffiliations = [
-    "Student",
-    "Veteran",
-    "Military",
-    "Retired",
-    "Non-Profit Worker",
-    "Government Employee"
-  ];
+  String? _selectedProximity;
+  TextEditingController _fromDateCon = TextEditingController();
+  TextEditingController _toDateCon = TextEditingController();
 
   List<String> proximityOptions = [
     'Within 1 mile',
@@ -37,7 +33,7 @@ class _SortViewState extends State<SortView> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        leading: BackButton(color: Colors.black),
+        leading: const BackButton(color: Colors.black),
         title: const Text("Sort", style: TextStyle(color: Colors.black)),
         backgroundColor: Colors.white,
         elevation: 0,
@@ -48,88 +44,11 @@ class _SortViewState extends State<SortView> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildDateField(),
-            const Text(
-              "By Relevance:",
-              style: TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w500,
-                color: ColorHelper.dullBlack,
-              ),
-            ),
-            const SizedBox(height: 5),
-            GestureDetector(
-              onTap: () => _showMultiSelectDialog(context),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFAFAFA),
-                  border: Border.all(color: const Color(0xFFE1E1E1), width: 1),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        selectedAffiliations.isEmpty
-                            ? "Select status"
-                            : selectedAffiliations.join(", "),
-                        style: const TextStyle(fontSize: 14),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    GestureDetector(
-                      child: Image.asset(
-                        'assets/images/drop.png',
-                        width: 15,
-                        height: 15,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+            _buildDateSortOptions(),
             const SizedBox(height: 15),
-            const Text(
-              "Proximity:",
-              style: TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w500,
-                color: ColorHelper.dullBlack,
-              ),
-            ),
-            const SizedBox(height: 5),
-            GestureDetector(
-              onTap: () => _showSingleSelectDialog(context),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFAFAFA),
-                  border: Border.all(color: const Color(0xFFE1E1E1), width: 1),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                        child: Text(
-                      _selectedProximity ?? "Select proximity",
-                      style: const TextStyle(fontSize: 14),
-                      overflow: TextOverflow.ellipsis,
-                    )),
-                    GestureDetector(
-                      onTap: () => _showSingleSelectDialog(context),
-                      child: Image.asset(
-                        'assets/images/drop.png',
-                        width: 15,
-                        height: 15,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+            _buildDateRangeFields(),
+            const SizedBox(height: 15),
+            _buildProximityPicker(context),
             const Spacer(),
             Row(
               children: [
@@ -138,14 +57,15 @@ class _SortViewState extends State<SortView> {
                     onPressed: () {
                       setState(() {
                         _selectedProximity = null;
-                        _selectedDateCon.clear();
-                        selectedAffiliations.clear();
+                        _fromDateCon.clear();
+                        _toDateCon.clear();
                       });
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: ColorHelper.red,
                       shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8)),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
                     ),
                     child: const Text("Reset",
                         style: TextStyle(color: ColorHelper.white)),
@@ -155,16 +75,36 @@ class _SortViewState extends State<SortView> {
                 Expanded(
                   child: ElevatedButton(
                     onPressed: () {
+                      final from = _fromDateCon.text.trim();
+                      final to = _toDateCon.text.trim();
+
+                      if ((from.isNotEmpty && to.isEmpty) ||
+                          (to.isNotEmpty && from.isEmpty)) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                                "Please select both 'From' and 'To' dates."),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                        return;
+                      }
+                      if (_selectedProximity != null) {
+                        homePageController.addPerformance(
+                            0, 'nearest_location');
+                      }
+
                       Navigator.pop(context, {
-                        'date': _selectedDateCon.text,
-                        'status': selectedAffiliations,
+                        'from': from,
+                        'to': to,
                         'miles': _selectedProximity,
                       });
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: ColorHelper.blue,
                       shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8)),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
                     ),
                     child: const Text("Apply Sort",
                         style: TextStyle(color: ColorHelper.white)),
@@ -179,113 +119,159 @@ class _SortViewState extends State<SortView> {
     );
   }
 
-  Widget _buildDateField() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _buildDateSortOptions() {
+    return Row(
       children: [
-        const SizedBox(height: 5),
-        CustomTextField(
-          labelText: "By Date:",
-          hintText: "i.e., 12/12/2002",
-          controller: _selectedDateCon,
-          suffixIcon: IconButton(
-            icon: Image.asset(
-              'assets/images/calendar.png',
-              width: 20,
-              height: 20,
+        const Text("Sort by Date: "),
+        Row(
+          children: [
+            Radio<DateSortOrder>(
+              value: DateSortOrder.ascending,
+              groupValue: homePageController.selectedSortOrder,
+              onChanged: (value) {
+                setState(() {
+                  homePageController.selectedSortOrder = value!;
+                });
+              },
             ),
-            onPressed: () => _selectDate(context),
-          ),
+            const Text('Ascending'),
+          ],
         ),
-        const SizedBox(height: 15),
+        Row(
+          children: [
+            Radio<DateSortOrder>(
+              value: DateSortOrder.descending,
+              groupValue: homePageController.selectedSortOrder,
+              onChanged: (value) {
+                setState(() {
+                  homePageController.selectedSortOrder = value!;
+                });
+              },
+            ),
+            const Text('Descending'),
+          ],
+        ),
       ],
     );
   }
 
-  Future<void> _selectDate(BuildContext context) async {
+  Widget _buildDateRangeFields() {
+    return Row(
+      children: [
+        Expanded(
+          child: _buildDatePickerField(
+            label: 'From:',
+            controller: _fromDateCon,
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: _buildDatePickerField(
+            label: 'To:',
+            controller: _toDateCon,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDatePickerField({
+    required String label,
+    required TextEditingController controller,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label,
+            style: const TextStyle(
+                fontWeight: FontWeight.w500,
+                fontSize: 14,
+                color: Colors.black)),
+        const SizedBox(height: 5),
+        GestureDetector(
+          onTap: () => _selectDate(controller),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFAFAFA),
+              border: Border.all(color: const Color(0xFFE1E1E1), width: 1),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    controller.text.isEmpty ? 'Select date' : controller.text,
+                    style: const TextStyle(fontSize: 14),
+                  ),
+                ),
+                Image.asset(
+                  'assets/images/calendar.png',
+                  width: 20,
+                  height: 20,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildProximityPicker(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text("Proximity:",
+            style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w500,
+                color: ColorHelper.dullBlack)),
+        const SizedBox(height: 5),
+        GestureDetector(
+          onTap: () => _showSingleSelectDialog(context),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFAFAFA),
+              border: Border.all(color: const Color(0xFFE1E1E1), width: 1),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Text(
+                    _selectedProximity ?? "Select proximity",
+                    style: const TextStyle(fontSize: 14),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                Image.asset(
+                  'assets/images/drop.png',
+                  width: 15,
+                  height: 15,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _selectDate(TextEditingController controller) async {
     final DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: DateTime(2000),
-      firstDate: DateTime(1900),
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2024),
       lastDate: DateTime.now(),
     );
     if (picked != null) {
       setState(() {
-        _selectedDateCon.text = "${picked.month}/${picked.day}/${picked.year}";
+        controller.text = DateFormat('MM/dd/yyyy').format(picked);
       });
     }
-  }
-
-  void _showMultiSelectDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (_) {
-        return Dialog(
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-          backgroundColor: Colors.white,
-          child: Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(10),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Padding(
-                  padding: EdgeInsets.only(left: 10, top: 10),
-                  // ⬅ Only left padding
-                  child: Text(
-                    "Select",
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 18,
-                    ),
-                  ),
-                ),
-                ...allAffiliations.map((item) {
-                  bool isSelected = selectedAffiliations.contains(item);
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 0),
-                    // ⬅ Less vertical spacing
-                    child: Theme(
-                      data: Theme.of(context).copyWith(
-                        unselectedWidgetColor: const Color(0xFF355F9B),
-                      ),
-                      child: CheckboxListTile(
-                        title: Text(
-                          item,
-                          style: TextStyle(
-                            color: isSelected ? Colors.black : Colors.grey,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        value: isSelected,
-                        dense: true,
-                        contentPadding: EdgeInsets.zero,
-                        controlAffinity: ListTileControlAffinity.leading,
-                        onChanged: (bool? selected) {
-                          setState(() {
-                            if (selected == true) {
-                              selectedAffiliations.add(item);
-                            } else {
-                              selectedAffiliations.remove(item);
-                            }
-                          });
-                          Navigator.pop(context);
-                          _showMultiSelectDialog(context);
-                        },
-                        checkColor: Colors.white,
-                        activeColor: const Color(0xFF30B0C7),
-                      ),
-                    ),
-                  );
-                }),
-              ],
-            ),
-          ),
-        );
-      },
-    );
   }
 
   void _showSingleSelectDialog(BuildContext context) {

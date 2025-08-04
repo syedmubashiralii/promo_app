@@ -44,17 +44,27 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
         );
       }),
       floatingActionButton: Container(
-        height: 50,
-        width: 50,
-        child: FloatingActionButton(
-          onPressed: () async {
+        height: 40,
+        width: 40,
+        child: InkWell(
+          onTap: () async {
+            homePageController.selectedFilterCategory.value = '';
+            homePageController.selectedAffiliations.clear();
+            homePageController.zipCode.value = '';
+            homePageController.zipController.clear();
+            homePageController.searchController.clear();
+            homePageController.searchQuery.value = '';
+            homePageController.filteredItems
+                .assignAll(homePageController.items);
             homePageController.fetchRedeemedItemsList();
             homePageController.fetchCategories();
             homePageController.fetchItems();
             homePageController.updateFavoriteStatusOnly();
           },
-          backgroundColor: ColorHelper.blue,
-          child: const Icon(Icons.refresh, color: Colors.white),
+          child: CircleAvatar(
+            backgroundColor: ColorHelper.blue,
+            child: const Icon(Icons.refresh, color: Colors.white),
+          ),
         ),
       ),
     );
@@ -339,16 +349,15 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
   void _onSortPressed() async {
     final result = await Get.toNamed(Routes.SORTVIEW);
     if (result != null) {
-      final selectedDate = result['date'];
-      final selectedStatusList = result['status'] as List<String>;
       final selectedMiles = result['miles'];
-      final radius =
-          int.tryParse(selectedMiles?.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0;
 
       homePageController.applySortFilters(
-        date: selectedDate,
-        statuses: selectedStatusList,
-        miles: radius,
+        toDate: result['to'],
+        fromDate: result['from'],
+        miles: selectedMiles == null
+            ? null
+            : int.tryParse(selectedMiles?.replaceAll(RegExp(r'[^0-9]'), '')) ??
+                0,
       );
     }
   }
@@ -356,14 +365,8 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
   void _onFilterPressed() async {
     final result = await Get.to(() => const FilterView());
     if (result != null && result is Map) {
-      setState(() {
-        homePageController.zipCode.value = result['zipCode'] ?? '';
-        homePageController.selectedCategory.value =
-            result['selectedCategory'] ?? 'All';
-        homePageController.selectedAffiliations.value =
-            List<String>.from(result['selectedAffiliations'] ?? []);
-      });
-      homePageController.filterItemsByAllConditions();
+      await homePageController.filterItemsByAllConditions();
+      setState(() {});
     }
   }
 }

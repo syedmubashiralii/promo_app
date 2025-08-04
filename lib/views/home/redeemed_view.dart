@@ -52,17 +52,19 @@ class _RedeemedViewState extends State<RedeemedView> {
         ),
       ),
       floatingActionButton: Container(
-        height: 50,
-        width: 50,
-        child: FloatingActionButton(
-          onPressed: () async {
+        height: 40,
+        width: 40,
+        child: InkWell(
+          onTap: () async {
             setState(() {
               isLoading = true;
             });
             fetchRedeemedItems();
           },
-          backgroundColor: ColorHelper.blue,
-          child: const Icon(Icons.refresh, color: Colors.white),
+          child: CircleAvatar(
+            backgroundColor: ColorHelper.blue,
+            child: const Icon(Icons.refresh, color: Colors.white),
+          ),
         ),
       ),
       body: isLoading

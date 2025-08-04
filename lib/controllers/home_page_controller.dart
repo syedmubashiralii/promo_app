@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:math';
+import 'dart:developer' as dev;
 import 'package:flutter_ui/controllers/home_controller.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:flutter_ui/models/items_model.dart';
@@ -8,14 +10,19 @@ import 'package:flutter_ui/services/api_service.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:intl/intl.dart';
+import 'package:location/location.dart';
+
+import '../views/home/main_view/sort_view.dart';
 
 class HomePageController extends GetxController with WidgetsBindingObserver {
   final apiService = ApiService();
   final box = GetStorage();
+  DateSortOrder selectedSortOrder = DateSortOrder.ascending;
 
   // State variables
   final categories = <String>[].obs;
   final selectedCategory = ''.obs;
+  final selectedFilterCategory = ''.obs;
   final isLoadingCategories = true.obs;
   RxList<String> redeemedItemIds = <String>[].obs;
 
@@ -25,6 +32,8 @@ class HomePageController extends GetxController with WidgetsBindingObserver {
 
   var searchQuery = ''.obs;
   final zipCode = ''.obs;
+  LatLng? selectedLocation;
+  final zipController = TextEditingController();
   final selectedAffiliations = <String>[].obs;
 
   // final favoriteStatus = <bool>[].obs;
@@ -131,48 +140,54 @@ class HomePageController extends GetxController with WidgetsBindingObserver {
     filteredItems.assignAll(result);
   }
 
-  void filterItemsByAllConditions() async {
-    Map<String, double>? selectedLocation =
-        await getLatLngFromZip(zipCode.value);
+  Future filterItemsByAllConditions() async {
+    if (selectedFilterCategory.value == '' && selectedAffiliations.isEmpty) {
+      filteredItems.assignAll(items);
+      return;
+    }
+    selectedCategory.value = selectedFilterCategory.value;
 
     if (selectedLocation == null) {
-      showSnackbar("Invalid ZIP code or location not found.");
-      return;
+      // showSnackbar("Invalid ZIP code or location not found.");
+      // return;
     }
     final result = items.where((item) {
       final category = item.categories?.name.toLowerCase() ?? '';
-      // final itemZip = item.location?.toLowerCase() ?? '';
 
-      final itemLocation = {
-        'lat': item.latitude ?? '',
-        'lng': item.longitude ?? '',
-      };
+      LatLng itemLocation = LatLng(double.parse(item.latitude ?? '0.0'),
+          double.parse(item.longitude ?? '0.0'));
+      bool isNearby = false;
+      if (selectedLocation != null) {
+        isNearby = areLocationsNearby(selectedLocation!, itemLocation);
+      }
 
-      final isNearby = areLocationsNearby(selectedLocation!, itemLocation);
+      List<dynamic>? itemAffiliation = item.affiliationId?.toList() ?? [];
 
-      final itemAffiliation = item.affiliationId.toString();
+      final matchCategory = selectedFilterCategory.value == '' ||
+          category == selectedFilterCategory.value.toLowerCase();
 
-      final matchCategory = selectedCategory.value == 'All' ||
-          category == selectedCategory.value.toLowerCase();
-      // final matchZip = zipCode.value.isEmpty ||
-      //     itemZip.contains(zipCode.value.toLowerCase());
       final matchAffiliation = selectedAffiliations.isEmpty ||
           selectedAffiliations.any((status) {
-            return statusIdMap[status].toString() == itemAffiliation;
+            final statusId = statusIdMap[status].toString();
+            final itemAffiliationList =
+                itemAffiliation.map((e) => e.toString()).toList();
+
+            return itemAffiliationList.contains(statusId);
           });
 
-      return matchCategory && isNearby && matchAffiliation;
+      return (matchCategory && matchAffiliation) &&
+          (selectedLocation == null ? true : isNearby);
     }).toList();
 
     filteredItems.assignAll(result);
   }
 
-  bool areLocationsNearby(Map<String, dynamic> loc1, Map<String, dynamic> loc2,
+  bool areLocationsNearby(LatLng loc1, LatLng loc2,
       {double thresholdInKm = 100.0}) {
-    final lat1 = double.tryParse(loc1['lat'].toString()) ?? 0.0;
-    final lon1 = double.tryParse(loc1['lng'].toString()) ?? 0.0;
-    final lat2 = double.tryParse(loc2['lat'].toString()) ?? 0.0;
-    final lon2 = double.tryParse(loc2['lng'].toString()) ?? 0.0;
+    final lat1 = double.tryParse(loc1.latitude.toString()) ?? 0.0;
+    final lon1 = double.tryParse(loc1.longitude.toString()) ?? 0.0;
+    final lat2 = double.tryParse(loc2.latitude.toString()) ?? 0.0;
+    final lon2 = double.tryParse(loc2.longitude.toString()) ?? 0.0;
 
     const R = 6371;
 
@@ -264,55 +279,107 @@ class HomePageController extends GetxController with WidgetsBindingObserver {
   }
 
   Future<void> applySortFilters({
-    required String date,
-    required List<String> statuses,
-    required int miles,
+    int? miles,
+    String? fromDate, // MM/dd/yyyy
+    String? toDate, // MM/dd/yyyy
   }) async {
-    // final userZip = box.read('user_location');
-    // final userCoords = await getLatLngFromZip(userZip);
-
-    var userCoords = <String, double>{
-      'lat': box.read('latitude') ?? 0.0,
-      'lng': box.read('longitude') ?? 0.0,
-    };
-
+    // Step 1: Filter by category
+    List<ItemModel> result = items.where((item) {
+      final category = item.categories?.name?.toLowerCase() ?? '';
+      return category == selectedCategory.value.toLowerCase();
+    }).toList();
+    print(result.toList().toString());
     final List<ItemModel> filtered = [];
 
-    for (var item in items) {
-      // final itemCoords = await getLatLngFromZip(item.location ?? '');
-      var itemCoords = <String, double>{
-        'lat': double.parse(item.latitude ?? ''),
-        'lng': double.parse(item.longitude ?? ''),
-      };
+    double? userLat;
+    double? userLng;
 
-      if (userCoords['lat'] == 0.0 || userCoords['lon'] == 0.0) {
-        final distance = calculateDistance(userCoords['lat']!,
-            userCoords['lng']!, itemCoords['lat']!, itemCoords['lng']!);
+    // Step 2: Get user location if miles is specified
+    if (miles != null) {
+      final location = Location();
+      bool serviceEnabled;
+      PermissionStatus permissionGranted;
+      LocationData? userLocation;
 
+      try {
+        serviceEnabled = await location.serviceEnabled();
+        if (!serviceEnabled) {
+          serviceEnabled = await location.requestService();
+          if (!serviceEnabled) {
+            showSnackbar("Location services are disabled.");
+            return;
+          }
+        }
+
+        permissionGranted = await location.hasPermission();
+        if (permissionGranted == PermissionStatus.denied) {
+          permissionGranted = await location.requestPermission();
+          if (permissionGranted != PermissionStatus.granted) {
+            showSnackbar("Location permission denied.");
+            return;
+          }
+        }
+
+        userLocation = await location.getLocation();
+      } catch (e) {
+        showSnackbar("Failed to get user location.");
+        return;
+      }
+
+      userLat = userLocation.latitude;
+      userLng = userLocation.longitude;
+
+      if (userLat == null || userLng == null) {
+        showSnackbar("Unable to retrieve location coordinates.");
+        return;
+      }
+    }
+
+    // Step 3: Parse from and to dates
+    DateTime? from;
+    DateTime? to;
+
+    if (fromDate != null && fromDate.isNotEmpty) {
+      try {
+        from = DateFormat('MM/dd/yyyy').parse(fromDate);
+      } catch (_) {}
+    }
+
+    if (toDate != null && toDate.isNotEmpty) {
+      try {
+        to = DateFormat('MM/dd/yyyy').parse(toDate);
+      } catch (_) {}
+    }
+
+    // Step 4: Apply filters
+    for (var item in result) {
+      final lat = double.tryParse(item.latitude ?? '');
+      final lng = double.tryParse(item.longitude ?? '');
+
+      if (miles != null && lat != null && lng != null) {
+        final distance = calculateDistance(userLat!, userLng!, lat, lng);
         if (distance > miles) continue;
       }
 
-      final itemDate = item.createdAt?.split('T')[0] ?? '';
-      final itemStatus = item.affiliationId?.toString();
+      final itemDate = DateTime.tryParse(item.createdAt ?? '');
+      if (itemDate == null) continue;
 
-      final userDate =
-          date.isNotEmpty ? DateFormat('MM/dd/yyyy').parse(date) : null;
-      final formattedDate =
-          userDate != null ? DateFormat('yyyy-MM-dd').format(userDate) : '';
-
-      if (date.isNotEmpty && itemDate != formattedDate) continue;
-      if (statuses.isNotEmpty && !statuses.contains(itemStatus)) continue;
+      if (from != null && itemDate.isBefore(from)) continue;
+      if (to != null && itemDate.isAfter(to)) continue;
 
       filtered.add(item);
     }
 
-    filteredItems.assignAll(filtered);
+    // Step 5: Sort by createdAt
+    filtered.sort((a, b) {
+      final dateA = DateTime.tryParse(a.createdAt ?? '') ?? DateTime(2000);
+      final dateB = DateTime.tryParse(b.createdAt ?? '') ?? DateTime(2000);
+      return selectedSortOrder == DateSortOrder.ascending
+          ? dateA.compareTo(dateB)
+          : dateB.compareTo(dateA);
+    });
 
-    if (filtered.isEmpty) {
-      showSnackbar("No items matched the sort criteria.");
-    } else {
-      showSnackbar("${filtered.length} item(s) matched.");
-    }
+    filteredItems.assignAll(filtered);
   }
 
   Future<Map<String, double>?> getLatLngFromZip(String zip) async {
@@ -334,6 +401,7 @@ class HomePageController extends GetxController with WidgetsBindingObserver {
 
   Future addPerformance(int itemId, String type) async {
     final token = box.read('auth_token');
+    print('adding Pefromance');
     if (token == null) return;
 
     try {

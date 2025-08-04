@@ -29,7 +29,7 @@ class _LoginViewState extends State<LoginView> {
   Widget build(BuildContext context) {
     if (kDebugMode) {
       print("🔁 LoginView built at: ${DateTime.now()}");
-      // _emailController.text = "smubashirali620@gmail.com";
+      _emailController.text = "smubashirali620@gmail.com";
       _passwordController.text = "Test@1234";
     }
     return Scaffold(

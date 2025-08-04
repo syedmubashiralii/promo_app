@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_ui/controllers/home_page_controller.dart';
 import 'package:flutter_ui/utils/color_helper.dart';
-import 'package:intl/intl.dart';
+import 'package:flutter_ui/views/home/main_view/location_screen.dart';
+import 'package:get/get.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import '../../../services/api_service.dart';
 import '../../../utils/widgets/custom_text_field.dart';
@@ -9,17 +12,14 @@ class FilterView extends StatefulWidget {
   const FilterView({super.key});
 
   @override
-  _FilterViewState createState() => _FilterViewState();
+  State<FilterView> createState() => _FilterViewState();
 }
 
 class _FilterViewState extends State<FilterView> {
   final ApiService apiService = ApiService();
+  final HomePageController homePageController = Get.find<HomePageController>();
 
-  TextEditingController _selectedDateCon = TextEditingController();
-  final TextEditingController _zipController = TextEditingController();
-
-  List<String> selectedAffiliations = [];
-  List<String> allAffiliations = [
+  final List<String> allAffiliations = [
     "Student",
     "Veteran",
     "Military",
@@ -27,21 +27,12 @@ class _FilterViewState extends State<FilterView> {
     "Non-Profit Worker",
     "Government Employee"
   ];
-  List<String> categories = [];
-  String selectedCategory = '';
-  bool _isLoadingCategories = true;
-
-  @override
-  void initState() {
-    super.initState();
-    fetchCategories();
-  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        leading: BackButton(color: Colors.black),
+        leading: const BackButton(color: Colors.black),
         title: const Text("Filter", style: TextStyle(color: Colors.black)),
         backgroundColor: Colors.white,
         elevation: 0,
@@ -52,90 +43,105 @@ class _FilterViewState extends State<FilterView> {
           children: [
             Expanded(
               child: SingleChildScrollView(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                 keyboardDismissBehavior:
                     ScrollViewKeyboardDismissBehavior.onDrag,
-                child: Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Location (Zip Code)
-                      CustomTextField(
-                        labelText: "Location (Zip Code):",
-                        hintText: "i.e., 456678",
-                        controller: _zipController,
-                      ),
-                      const SizedBox(height: 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    CustomTextField(
+                      labelText: "Location (Lat Lng):",
+                      hintText: "i.e., 33, 45",
+                      showClear: true,
+                      onPressed: () {
+                        homePageController.zipController.text = '';
+                        homePageController.selectedLocation = null;
+                      },
+                      readOnly: true,
+                      controller: homePageController.zipController,
+                      onTap: () async {
+                        LatLng? selectedLocation = await Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => MapScreen()),
+                        );
 
-                      const Text(
-                        "By Category",
+                        if (selectedLocation != null) {
+                          setState(() {
+                            homePageController.selectedLocation =
+                                selectedLocation;
+                            homePageController.zipController.text =
+                                '${selectedLocation.latitude}, ${selectedLocation.longitude}';
+                          });
+                        }
+                      },
+                      onChanged: (value) =>
+                          homePageController.zipCode.value = value,
+                    ),
+                    const SizedBox(height: 16),
+                    const Text("By Category",
                         style: TextStyle(
-                            fontSize: 14, fontWeight: FontWeight.w500),
-                      ),
-                      const SizedBox(height: 8),
-                      Wrap(
-                        spacing: 8,
-                        children: [
-                          _isLoadingCategories
-                              ? const CircularProgressIndicator()
-                              : SizedBox(
-                                  height: 40,
-                                  child: ListView.builder(
-                                    scrollDirection: Axis.horizontal,
-                                    itemCount: categories.length,
-                                    itemBuilder: (_, index) {
-                                      String category = categories[index];
-                                      bool isSelected =
-                                          category == selectedCategory;
+                            fontSize: 14, fontWeight: FontWeight.w500)),
+                    const SizedBox(height: 8),
+                    Obx(() {
+                      return SizedBox(
+                        height: 40,
+                        child: homePageController.isLoadingCategories.value
+                            ? const Center(child: CircularProgressIndicator())
+                            : ListView.builder(
+                                scrollDirection: Axis.horizontal,
+                                itemCount: homePageController.categories.length,
+                                itemBuilder: (_, index) {
+                                  final category =
+                                      homePageController.categories[index];
+                                  final isSelected = category ==
+                                      homePageController
+                                          .selectedFilterCategory.value;
 
-                                      return Padding(
-                                        padding:
-                                            const EdgeInsets.only(right: 10),
-                                        child: ChoiceChip(
-                                          label: Text(
-                                            category,
-                                            style: TextStyle(
-                                              color: isSelected
-                                                  ? Colors.white
-                                                  : const Color(0xFFB3B3B3),
-                                            ),
-                                          ),
-                                          selected: isSelected,
-                                          selectedColor: ColorHelper.blue,
-                                          backgroundColor: Colors.white,
-                                          side: BorderSide(
-                                            color: isSelected
-                                                ? ColorHelper.blue
-                                                : const Color(0xFFB3B3B3),
-                                          ),
-                                          onSelected: (_) {
-                                            setState(() {
-                                              selectedCategory = category;
-                                            });
-                                          },
-                                          showCheckmark: false,
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(8),
-                                          ),
+                                  return Padding(
+                                    padding: const EdgeInsets.only(right: 10),
+                                    child: ChoiceChip(
+                                      label: Text(
+                                        category,
+                                        style: TextStyle(
+                                          color: isSelected
+                                              ? Colors.white
+                                              : const Color(0xFFB3B3B3),
                                         ),
-                                      );
-                                    },
-                                  ),
-                                ),
-                        ],
-                      ),
-                      const SizedBox(height: 20),
-                      _buildDropdown(),
-                      const SizedBox(height: 20),
-                    ],
-                  ),
+                                      ),
+                                      selected: isSelected,
+                                      selectedColor: ColorHelper.blue,
+                                      backgroundColor: Colors.white,
+                                      side: BorderSide(
+                                        color: isSelected
+                                            ? ColorHelper.blue
+                                            : const Color(0xFFB3B3B3),
+                                      ),
+                                      onSelected: (_) {
+                                        homePageController
+                                            .selectedFilterCategory
+                                            .value = category;
+                                        setState(() {});
+                                      },
+                                      showCheckmark: false,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                      );
+                    }),
+                    const SizedBox(height: 20),
+                    _buildAffiliationDropdown(),
+                    const SizedBox(height: 20),
+                  ],
                 ),
               ),
             ),
 
-            // Buttons pinned to the bottom
+            // Bottom Buttons
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               child: Row(
@@ -143,17 +149,16 @@ class _FilterViewState extends State<FilterView> {
                   Expanded(
                     child: ElevatedButton(
                       onPressed: () {
-                        setState(() {
-                          _zipController.clear();
-                          _selectedDateCon.clear();
-                          selectedAffiliations.clear();
-                          selectedCategory = "";
-                        });
+                        homePageController.zipController.clear();
+                        homePageController.selectedAffiliations.clear();
+                        homePageController.selectedFilterCategory.value = "";
+                        setState(() {});
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: ColorHelper.red,
                         shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8)),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
                       ),
                       child: const Text("Reset",
                           style: TextStyle(color: ColorHelper.white)),
@@ -163,16 +168,21 @@ class _FilterViewState extends State<FilterView> {
                   Expanded(
                     child: ElevatedButton(
                       onPressed: () {
+                     
                         Navigator.pop(context, {
-                          'zipCode': _zipController.text.trim(),
-                          'selectedCategory': selectedCategory,
-                          'selectedAffiliations': selectedAffiliations,
+                          'zipCode':
+                              homePageController.zipController.text.trim(),
+                          'selectedCategory':
+                              homePageController.selectedFilterCategory.value,
+                          'selectedAffiliations':
+                              homePageController.selectedAffiliations.value,
                         });
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: ColorHelper.blue,
                         shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8)),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
                       ),
                       child: const Text("Apply Filter",
                           style: TextStyle(color: ColorHelper.white)),
@@ -187,59 +197,54 @@ class _FilterViewState extends State<FilterView> {
     );
   }
 
-  Widget _buildDropdown() {
-    return GestureDetector(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            "Affiliation Status:",
-            style: TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.w500,
-              color: ColorHelper.dullBlack,
+  Widget _buildAffiliationDropdown() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          "Affiliation Status:",
+          style: TextStyle(
+            fontSize: 15,
+            fontWeight: FontWeight.w500,
+            color: ColorHelper.dullBlack,
+          ),
+        ),
+        const SizedBox(height: 5),
+        GestureDetector(
+          onTap: () => _showMultiSelectDialog(context),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFAFAFA),
+              border: Border.all(color: const Color(0xFFE1E1E1), width: 1),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Text(
+                    homePageController.selectedAffiliations.isEmpty
+                        ? "Select status"
+                        : homePageController.selectedAffiliations.join(", "),
+                    style: const TextStyle(fontSize: 14),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                Image.asset('assets/images/drop.png', width: 15, height: 15),
+              ],
             ),
           ),
-          const SizedBox(height: 5),
-          GestureDetector(
-            onTap: () => _showMultiSelectDialog(context),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-              decoration: BoxDecoration(
-                color: const Color(0xFFFAFAFA),
-                border: Border.all(color: const Color(0xFFE1E1E1), width: 1),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Text(
-                      selectedAffiliations.isEmpty
-                          ? "Select status"
-                          : selectedAffiliations.join(", "),
-                      style: const TextStyle(fontSize: 14),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  GestureDetector(
-                    child: Image.asset(
-                      'assets/images/drop.png',
-                      width: 15,
-                      height: 15,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 15),
-        ],
-      ),
+        ),
+        const SizedBox(height: 15),
+      ],
     );
   }
 
   void _showMultiSelectDialog(BuildContext context) {
+    List<String> tempSelections =
+        List.from(homePageController.selectedAffiliations);
+
     showDialog(
       context: context,
       builder: (_) {
@@ -247,85 +252,91 @@ class _FilterViewState extends State<FilterView> {
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
           backgroundColor: Colors.white,
-          child: Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(10),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Padding(
-                  padding: EdgeInsets.only(left: 10, top: 10),
-                  // ⬅ Only left padding
-                  child: Text(
-                    "Select",
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 18,
-                    ),
-                  ),
-                ),
-                ...allAffiliations.map((item) {
-                  bool isSelected = selectedAffiliations.contains(item);
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 0),
-                    // ⬅ Less vertical spacing
-                    child: Theme(
-                      data: Theme.of(context).copyWith(
-                        unselectedWidgetColor: const Color(0xFF355F9B),
-                      ),
-                      child: CheckboxListTile(
-                        title: Text(
-                          item,
-                          style: TextStyle(
-                            color: isSelected ? Colors.black : Colors.grey,
-                            fontWeight: FontWeight.w500,
-                          ),
+          child: StatefulBuilder(
+            builder: (context, setStateDialog) {
+              return Container(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        "Select Affiliation(s)",
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
                         ),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    ...allAffiliations.map((item) {
+                      final isSelected = tempSelections.contains(item);
+                      return CheckboxListTile(
+                        title: Text(item,
+                            style: const TextStyle(
+                                fontWeight: FontWeight.w500,
+                                color: Colors.black)),
                         value: isSelected,
                         dense: true,
                         contentPadding: EdgeInsets.zero,
                         controlAffinity: ListTileControlAffinity.leading,
+                        activeColor: ColorHelper.blue,
+                        checkColor: Colors.white,
                         onChanged: (bool? selected) {
-                          setState(() {
+                          setStateDialog(() {
                             if (selected == true) {
-                              selectedAffiliations.add(item);
+                              tempSelections.add(item);
                             } else {
-                              selectedAffiliations.remove(item);
+                              tempSelections.remove(item);
                             }
                           });
-                          Navigator.pop(context);
-                          _showMultiSelectDialog(context);
                         },
-                        checkColor: Colors.white,
-                        activeColor: const Color(0xFF30B0C7),
-                      ),
+                      );
+                    }).toList(),
+                    const SizedBox(height: 10),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        TextButton(
+                          style: TextButton.styleFrom(
+                            foregroundColor: ColorHelper.dullBlack,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          onPressed: () => Navigator.pop(context),
+                          child: const Text("Close"),
+                        ),
+                        const SizedBox(width: 8),
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: ColorHelper.blue,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              homePageController.selectedAffiliations
+                                ..clear()
+                                ..addAll(tempSelections);
+                            });
+
+                            Navigator.pop(context);
+                          },
+                          child: const Text("OK",
+                              style: TextStyle(color: Colors.white)),
+                        ),
+                      ],
                     ),
-                  );
-                }).toList(),
-              ],
-            ),
+                  ],
+                ),
+              );
+            },
           ),
         );
       },
     );
-  }
-
-  void fetchCategories() async {
-    try {
-      final fetchedCategories = await apiService.fetchCategories();
-      setState(() {
-        categories = fetchedCategories;
-        if (categories.isNotEmpty) {
-          selectedCategory = categories[0];
-        }
-        _isLoadingCategories = false;
-      });
-    } catch (e) {
-      print("Error fetching categories: $e");
-      setState(() {
-        _isLoadingCategories = false;
-      });
-    }
   }
 }

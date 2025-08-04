@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_ui/utils/color_helper.dart';
 
 class CustomTextField extends StatelessWidget {
   final String labelText;
@@ -11,7 +12,9 @@ class CustomTextField extends StatelessWidget {
   final void Function()? onTap;
   final void Function(String)? onChanged;
   final bool? readOnly;
+  final bool? showClear;
   final double bottomSpacing;
+  final void Function()? onPressed;
   final bool enabled;
 
   const CustomTextField({
@@ -23,7 +26,9 @@ class CustomTextField extends StatelessWidget {
     this.obscureText = false,
     this.keyboardType = TextInputType.text,
     this.onChanged,
-    this.readOnly=false,
+    this.onPressed,
+    this.readOnly = false,
+    this.showClear = false,
     this.suffixIcon,
     this.prefixIcon,
     this.bottomSpacing = 8,
@@ -39,19 +44,38 @@ class CustomTextField extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (labelText.isNotEmpty) ...[
-          Text(
-            labelText,
-            style: const TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.w500,
-              color: Color(0xFF222222),
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                labelText,
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w500,
+                  color: Color(0xFF222222),
+                ),
+              ),
+              Visibility(
+                visible: showClear ?? false,
+                child: InkWell(
+                  onTap: onPressed,
+                  child: Text(
+                    'Clear',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      color: ColorHelper.blue,
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 5),
         ],
         TextField(
           onTap: onTap,
-          readOnly: readOnly??false,
+          readOnly: readOnly ?? false,
           controller: controller,
           onChanged: onChanged,
           obscureText: obscureText,
@@ -79,9 +103,9 @@ class CustomTextField extends StatelessWidget {
             suffixIcon: suffixIcon,
             prefixIcon: prefixIcon != null
                 ? Padding(
-              padding: const EdgeInsets.all(12.0),
-              child: prefixIcon,
-            )
+                    padding: const EdgeInsets.all(12.0),
+                    child: prefixIcon,
+                  )
                 : null,
           ),
         ),
@@ -90,4 +114,3 @@ class CustomTextField extends StatelessWidget {
     );
   }
 }
-

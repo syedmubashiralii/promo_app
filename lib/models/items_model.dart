@@ -26,9 +26,9 @@ class ItemModel {
   final String? description;
   final String? redemptionInstruction;
   final String? categoryId;
-  final String? tags;
+  final List? tags;
   final String? location;
-  final List<String>? affiliationId;
+  final List? affiliationId;
   final String? price;
   final String? eligibilityCriteria;
   final String? isFree;
@@ -44,27 +44,27 @@ class ItemModel {
   final List<PromoMedia>? media;
 
   ItemModel({
-     required this.id,
-     this.title,
-     this.description,
-     this.redemptionInstruction,
-     this.categoryId,
-     this.tags,
-     this.location,
-     this.affiliationId,
-     this.price,
-     this.eligibilityCriteria,
-     this.isFree,
-     this.status,
-     this.createdAt,
-     this.updatedAt,
-     this.brandId,
-     this.businessType,
-     this.locationUrl,
-     this.latitude,
-     this.longitude,
-     this.categories,
-     this.media,
+    required this.id,
+    this.title,
+    this.description,
+    this.redemptionInstruction,
+    this.categoryId,
+    this.tags,
+    this.location,
+    this.affiliationId,
+    this.price,
+    this.eligibilityCriteria,
+    this.isFree,
+    this.status,
+    this.createdAt,
+    this.updatedAt,
+    this.brandId,
+    this.businessType,
+    this.locationUrl,
+    this.latitude,
+    this.longitude,
+    this.categories,
+    this.media,
   });
 
   factory ItemModel.fromJson(Map<String, dynamic> json) {
@@ -74,7 +74,7 @@ class ItemModel {
       description: json['description'],
       redemptionInstruction: json['redemption_instruction'],
       categoryId: json['category_id'],
-      tags: json['tags'],
+      tags: (json['tags'] as List<dynamic>?)?.map((e) => e.toString()).toList(),
       location: json['location'],
       affiliationId: (json['affiliation_id'] as List<dynamic>?)
           ?.map((e) => e.toString())
