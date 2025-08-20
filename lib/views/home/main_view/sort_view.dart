@@ -16,9 +16,8 @@ class SortView extends StatefulWidget {
 class _SortViewState extends State<SortView> {
   final HomePageController homePageController = Get.find<HomePageController>();
 
-  String? _selectedProximity;
-  TextEditingController _fromDateCon = TextEditingController();
-  TextEditingController _toDateCon = TextEditingController();
+  
+
 
   List<String> proximityOptions = [
     'Within 1 mile',
@@ -56,10 +55,11 @@ class _SortViewState extends State<SortView> {
                   child: ElevatedButton(
                     onPressed: () {
                       setState(() {
-                        _selectedProximity = null;
-                        _fromDateCon.clear();
-                        _toDateCon.clear();
+                        homePageController.selectedProximity = null;
+                        homePageController.fromDateCon.clear();
+                        homePageController.toDateCon.clear();
                       });
+                      Navigator.pop(context);
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: ColorHelper.red,
@@ -75,8 +75,8 @@ class _SortViewState extends State<SortView> {
                 Expanded(
                   child: ElevatedButton(
                     onPressed: () {
-                      final from = _fromDateCon.text.trim();
-                      final to = _toDateCon.text.trim();
+                      final from = homePageController.fromDateCon.text.trim();
+                      final to = homePageController.toDateCon.text.trim();
 
                       if ((from.isNotEmpty && to.isEmpty) ||
                           (to.isNotEmpty && from.isEmpty)) {
@@ -89,15 +89,12 @@ class _SortViewState extends State<SortView> {
                         );
                         return;
                       }
-                      if (_selectedProximity != null) {
-                        homePageController.addPerformance(
-                            0, 'nearest_location');
-                      }
+                      
 
                       Navigator.pop(context, {
                         'from': from,
                         'to': to,
-                        'miles': _selectedProximity,
+                        'miles': homePageController.selectedProximity,
                       });
                     },
                     style: ElevatedButton.styleFrom(
@@ -161,14 +158,14 @@ class _SortViewState extends State<SortView> {
         Expanded(
           child: _buildDatePickerField(
             label: 'From:',
-            controller: _fromDateCon,
+            controller: homePageController.fromDateCon,
           ),
         ),
         const SizedBox(width: 12),
         Expanded(
           child: _buildDatePickerField(
             label: 'To:',
-            controller: _toDateCon,
+            controller: homePageController.toDateCon,
           ),
         ),
       ],
@@ -242,7 +239,7 @@ class _SortViewState extends State<SortView> {
               children: [
                 Expanded(
                   child: Text(
-                    _selectedProximity ?? "Select proximity",
+                    homePageController.selectedProximity ?? "Select proximity",
                     style: const TextStyle(fontSize: 14),
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -291,11 +288,11 @@ class _SortViewState extends State<SortView> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: proximityOptions.map((option) {
-                    final isSelected = option == _selectedProximity;
+                    final isSelected = option == homePageController.selectedProximity;
                     return GestureDetector(
                       onTap: () {
                         setState(() {
-                          _selectedProximity = option;
+                          homePageController.selectedProximity = option;
                         });
                         Navigator.pop(context);
                       },

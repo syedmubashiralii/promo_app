@@ -18,7 +18,6 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     homePageController.fetchRedeemedItemsList();
   }
@@ -61,9 +60,9 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
             homePageController.fetchItems();
             homePageController.updateFavoriteStatusOnly();
           },
-          child: CircleAvatar(
+          child: const CircleAvatar(
             backgroundColor: ColorHelper.blue,
-            child: const Icon(Icons.refresh, color: Colors.white),
+            child: Icon(Icons.refresh, color: Colors.white),
           ),
         ),
       ),
@@ -185,12 +184,14 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
                               ? ColorHelper.blue
                               : const Color(0xFFB3B3B3),
                         ),
-                        onSelected: (_) {
+                        onSelected: (_) async {
                           setState(() {
                             homePageController.selectedCategory.value =
                                 category;
                             homePageController.filterItemsByCategory();
                           });
+                          await homePageController.applySortFilters();
+                          setState(() {});
                         },
                         showCheckmark: false,
                         shape: RoundedRectangleBorder(
@@ -264,7 +265,7 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
                 child: CircleAvatar(
                   backgroundColor: Colors.black,
                   child: Padding(
-                    padding: EdgeInsets.all(.4),
+                    padding: const EdgeInsets.all(.4),
                     child: CircleAvatar(
                       backgroundColor: Colors.white,
                       child: GestureDetector(
@@ -331,8 +332,16 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
                     borderRadius: BorderRadius.circular(6),
                   ),
                 ),
-                onPressed: () =>
-                    Get.toNamed(Routes.VIEWDETAIL, arguments: item),
+                onPressed: () {
+                  bool isIndividual = item.businessType == 'individual' ||
+                      item.businessType == null;
+                  if (homePageController.selectedProximity != null &&
+                      isIndividual) {
+                    homePageController.addPerformance(
+                        item.id, 'nearest_location');
+                  }
+                  Get.toNamed(Routes.VIEWDETAIL, arguments: item);
+                },
                 child: const Text("View Details",
                     style: TextStyle(
                         fontSize: 11,
@@ -349,16 +358,7 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
   void _onSortPressed() async {
     final result = await Get.toNamed(Routes.SORTVIEW);
     if (result != null) {
-      final selectedMiles = result['miles'];
-
-      homePageController.applySortFilters(
-        toDate: result['to'],
-        fromDate: result['from'],
-        miles: selectedMiles == null
-            ? null
-            : int.tryParse(selectedMiles?.replaceAll(RegExp(r'[^0-9]'), '')) ??
-                0,
-      );
+      homePageController.applySortFilters();
     }
   }
 

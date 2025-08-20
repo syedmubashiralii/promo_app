@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:math';
 import 'dart:developer' as dev;
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_ui/controllers/home_controller.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
@@ -18,6 +19,9 @@ class HomePageController extends GetxController with WidgetsBindingObserver {
   final apiService = ApiService();
   final box = GetStorage();
   DateSortOrder selectedSortOrder = DateSortOrder.ascending;
+  TextEditingController fromDateCon = TextEditingController();
+  TextEditingController toDateCon = TextEditingController();
+  String? selectedProximity;
 
   // State variables
   final categories = <String>[].obs;
@@ -278,12 +282,13 @@ class HomePageController extends GetxController with WidgetsBindingObserver {
     }
   }
 
-  Future<void> applySortFilters({
-    int? miles,
-    String? fromDate, // MM/dd/yyyy
-    String? toDate, // MM/dd/yyyy
-  }) async {
-    // Step 1: Filter by category
+  Future<void> applySortFilters() async {
+    int? miles = selectedProximity == null
+        ? null
+        : int.tryParse(
+                selectedProximity?.replaceAll(RegExp(r'[^0-9]'), '') ?? '0') ??
+            0;
+
     List<ItemModel> result = items.where((item) {
       final category = item.categories?.name?.toLowerCase() ?? '';
       return category == selectedCategory.value.toLowerCase();
@@ -293,9 +298,8 @@ class HomePageController extends GetxController with WidgetsBindingObserver {
 
     double? userLat;
     double? userLng;
-
-    // Step 2: Get user location if miles is specified
     if (miles != null) {
+      EasyLoading.show(status: 'Applying Sort');
       final location = Location();
       bool serviceEnabled;
       PermissionStatus permissionGranted;
@@ -324,12 +328,15 @@ class HomePageController extends GetxController with WidgetsBindingObserver {
       } catch (e) {
         showSnackbar("Failed to get user location.");
         return;
+      } finally {
+        EasyLoading.dismiss();
       }
 
       userLat = userLocation.latitude;
       userLng = userLocation.longitude;
 
       if (userLat == null || userLng == null) {
+        EasyLoading.dismiss();
         showSnackbar("Unable to retrieve location coordinates.");
         return;
       }
@@ -339,15 +346,15 @@ class HomePageController extends GetxController with WidgetsBindingObserver {
     DateTime? from;
     DateTime? to;
 
-    if (fromDate != null && fromDate.isNotEmpty) {
+    if (fromDateCon.text.isNotEmpty) {
       try {
-        from = DateFormat('MM/dd/yyyy').parse(fromDate);
+        from = DateFormat('MM/dd/yyyy').parse(fromDateCon.text);
       } catch (_) {}
     }
 
-    if (toDate != null && toDate.isNotEmpty) {
+    if (toDateCon.text.isNotEmpty) {
       try {
-        to = DateFormat('MM/dd/yyyy').parse(toDate);
+        to = DateFormat('MM/dd/yyyy').parse(toDateCon.text);
       } catch (_) {}
     }
 
@@ -355,6 +362,8 @@ class HomePageController extends GetxController with WidgetsBindingObserver {
     for (var item in result) {
       final lat = double.tryParse(item.latitude ?? '');
       final lng = double.tryParse(item.longitude ?? '');
+      debugPrint(
+          "miles ${miles.toString()} lat${lat.toString()} lng ${lng.toString()}");
 
       if (miles != null && lat != null && lng != null) {
         final distance = calculateDistance(userLat!, userLng!, lat, lng);

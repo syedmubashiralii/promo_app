@@ -134,6 +134,8 @@ class _ItemDetailViewState extends State<ItemDetailView> {
                             final Uri _url = Uri.parse(item.locationUrl ?? "");
                             homePageController.addPerformance(
                                 item.id, 'location');
+                            homePageController.addPerformance(
+                                item.id, 'nearest_location');
                             _launchUrl(_url);
                           }
                         },
@@ -269,7 +271,7 @@ class _ItemDetailViewState extends State<ItemDetailView> {
         item.businessType == 'individual' || item.businessType == null
             ? item.location
             : item.locationUrl ??
-                'https://freebecause.com'; // fallback if not available
+                ''; // fallback if not available
     const applink =
         'https://play.google.com/store/apps/details?id=com.freebee.app';
 

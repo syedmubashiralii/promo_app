@@ -4,7 +4,7 @@ import 'package:flutter_ui/models/items_model.dart';
 import 'package:http/http.dart' as http;
 import 'package:get_storage/get_storage.dart';
 
-String baseUrl = 'https://promo.koderspoint.com/api';
+String baseUrl = 'https://freebee4u.com/api';
 
 class ApiService {
   final box = GetStorage();
